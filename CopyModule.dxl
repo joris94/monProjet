@@ -329,10 +329,6 @@ void fnChangeToStartFolder(Folder fStart)
     }
 }
 
-
-
-
-
 /******************************************************************************
 	miniExplorer
 	
