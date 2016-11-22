@@ -4,9 +4,6 @@
 pragma		encoding, "UTF-8";
 Item		itemRefTemplate, itemDestinationFolder;
 
-
-
-
 string		renamedModule;
 DBE			dbeField;
 int 		intPrefix;
@@ -27,7 +24,6 @@ DBE    dbeMiniExplorerOkButton              = null
 
 int    miniExplorerItemMask                 = MINI_EXP_FP
 string miniExplorerSelectedItem             = ""
-
 
 //***********************************************************
 /// @errorDisplayExit(string msg)
