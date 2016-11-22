@@ -1,0 +1,51 @@
+#include <D:\users\log\logInclude.dxl>
+
+//! GLOBALS
+pragma		encoding, "UTF-8";
+string		folderOfTemplates = "/p-DE-BIE2-TRAIN19";
+
+void errorDisplayExit(string msg)
+{
+	ack(msg);
+	logEnd();
+	halt();
+}
+
+bool isTemplateModule(Module m)
+{	
+	string strItem = name (m);
+	string strShouldBeXX = strItem[2:3];
+	int lenghtStr = length (strItem);
+	strShouldBe_tpl = strItem[lenghtStr-4:lenghtStr-1]
+	if( (strShouldBeXX != "XX" && strShouldBeXX != "xx") || strShouldBe_tpl != "_tpl"){
+		return (false);
+	}
+	return (true);
+}
+
+void main()
+{
+	Module m = current;
+	if (null m){
+		errorDisplayExit ("This script shall be executed in a module context");
+	}
+	if(isTemplateModule(m)){
+		errorDisplayExit ("This script shall not be executed on a template module");
+	}
+	Date dateAndTime = dateAndTime(today());
+	print "Running Script - "dateAndTime"\n";
+
+	//get category of module by reading prefix
+	string categoryOfModule = name(m);
+	categoryOfModule = categoryOfModule[0:1];
+	print "Now find the " categoryOfModule "  category in the folder "folderOfTemplates;
+
+	//find template prefixXX_..._tpl template module
+	current = project(folderOfTemplates); // current is now Project
+	print "\n"name(current) "  -  " type current
+
+}
+
+logStart("Test");
+main();
+logEnd();
