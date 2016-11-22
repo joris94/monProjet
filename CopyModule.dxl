@@ -1,0 +1,668 @@
+#include <D:\users\log\logInclude.dxl>
+
+//! GLOBALS
+pragma		encoding, "UTF-8";
+Item		itemRefTemplate, itemDestinationFolder;
+
+string		renamedModule;
+DBE			dbeField;
+int 		intPrefix;
+
+// item filters
+const int MINI_EXP_FP                       = 1
+const int MINI_EXP_LINK_MODS                = 2
+const int MINI_EXP_FORMAL_MODS              = 4
+const int MINI_EXP_DESCRIPTIVE_MODS         = 8
+const int MINI_EXP_SHOW_DELETED             = 16
+
+bool 	showModules							= null //IF TRUE browser show folder + module, else only folder.
+DBE 	onlyTemplateBox						= null
+
+DB     dbMiniExplorer                       = null
+DBE    dbeMiniExplorerTree                  = null
+DBE    dbeMiniExplorerOkButton              = null
+
+int    miniExplorerItemMask                 = MINI_EXP_FP
+string miniExplorerSelectedItem             = ""
+
+
+//***********************************************************
+/// @errorDisplayExit(string msg)
+/// @brief - Display a message and quit the current script execution
+
+/// @param[in] msg:	The error message to display
+//***********************************************************
+void errorDisplayExit(string msg)
+{
+	ack(msg);
+	logEnd();
+	halt();
+}
+
+void exitWithoutError()
+{
+	logEnd();
+	halt();
+}
+
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/////////////////////////////////////////// ----- TreeView ----- ///////////////////////////////////////////
+
+/******************************************************************************
+	isTemplateModule
+******************************************************************************/
+bool isTemplateModule(Item item)
+{	
+	string strItem = name (item);
+	string strShouldBeXX = strItem[2:3];
+	int lenghtStr = length (strItem);
+	strShouldBe_tpl = strItem[lenghtStr-4:lenghtStr-1]
+	if( (strShouldBeXX != "XX" && strShouldBeXX != "xx") || strShouldBe_tpl != "_tpl"){
+		return (false);
+	}
+	return (true);
+}
+
+/******************************************************************************
+	itemMatchesMaskModulLinkDescriptive
+******************************************************************************/
+bool itemMatchesMaskModulLinkDescriptive(Item itm)
+{
+	if (type(itm) == "Formal" )
+	{
+		if(get (onlyTemplateBox)){
+			bool statut = isTemplateModule(itm);
+			return (statut);
+		}
+		return (true);
+	}
+	if (type(itm) == "Link" || type(itm) == "Descriptive" )
+	{
+		if(get (onlyTemplateBox)){
+			bool statut = isTemplateModule(itm);
+			return (statut);
+		}
+		return(true)
+	}
+	return(false)
+}
+
+/******************************************************************************
+	itemMatchesMaskFolder
+******************************************************************************/
+bool itemMatchesMaskFolder(Item itm)
+{
+	if (type(itm) == "Folder" || type(itm) == "Project")
+	{
+		return(true);
+	}
+	return(false)
+}
+
+/******************************************************************************
+	doOk
+******************************************************************************/
+void doOk(DB db)
+{
+    miniExplorerSelectedItem = getRealPath(dbSep get(dbeMiniExplorerTree))
+
+    release(dbMiniExplorer)
+    hide(dbMiniExplorer)
+}
+
+
+
+/******************************************************************************
+	doActivateOK
+******************************************************************************/
+void doActivateOK(DBE dbe) 
+{
+	string sel = getRealPath(dbSep get(dbeMiniExplorerTree))
+	if(showModules){
+		if (itemMatchesMaskModulLinkDescriptive(item(sel)))
+		{
+			miniExplorerSelectedItem = sel
+			release(dbMiniExplorer)
+			hide(dbMiniExplorer)
+		} 
+	}else{
+		if (itemMatchesMaskFolder(item(sel)))
+		{
+			miniExplorerSelectedItem = sel
+			release(dbMiniExplorer)
+			hide(dbMiniExplorer)
+		}
+	}
+}
+
+/******************************************************************************
+	doCancel
+******************************************************************************/
+void doCancel(DB db)
+{
+    miniExplorerSelectedItem = ""
+
+    release(dbMiniExplorer)
+    hide(dbMiniExplorer)
+}
+
+
+
+/******************************************************************************
+	doNothing
+******************************************************************************/
+void doNothing(DB db)
+{
+	;
+}
+
+/******************************************************************************
+	addItem
+******************************************************************************/
+void addItem(DBE dbe, Item i)
+{
+	string displayPath = getDisplayPath(i)
+	
+    // check status
+    if (exists(dbeMiniExplorerTree, displayPath) == false)
+    {
+        // check status
+        if (isDeleted(i) == false || (isDeleted(i) == true && ((miniExplorerItemMask & MINI_EXP_SHOW_DELETED) == MINI_EXP_SHOW_DELETED)))
+        {
+            // check item type
+            if (type(i) == "Folder" || type(i) == "Project")
+            {
+                Icon iconOpen, iconClosed
+                string sDummyEntry = displayPath dbSep dummyItem
+
+                // assign project or folder specific icons
+                assignIcons(i, iconOpen, iconClosed)
+            
+                // add entry (plus dummy)                     
+                insert(dbeMiniExplorerTree, displayPath, iconClosed, iconOpen)
+                insert(dbeMiniExplorerTree, sDummyEntry, iconClosed, iconOpen)   
+            }
+            else 
+            {
+				if(showModules){
+					insert(dbeMiniExplorerTree, displayPath, getIcon(i), getIcon(i))
+				}else{
+					if (itemMatchesMaskFolder(i))
+					{
+						insert(dbeMiniExplorerTree, displayPath, getIcon(i), getIcon(i))
+					}
+				}
+            }
+        }
+    }
+}
+
+
+/******************************************************************************
+	displayBranch
+******************************************************************************/
+void displayBranch(DBE dbe, string sItemPath)
+{
+    Folder fStart = folder(getRealPath(sItemPath))
+    if (fStart != null) 
+    {
+        Item i
+
+        for i in all fStart do
+        {  
+            addItem(dbeMiniExplorerTree, i)               
+        }
+    }
+}
+
+
+/******************************************************************************
+	changeOkButton
+******************************************************************************/
+void changeOkButton()
+{
+	string sel = getRealPath(dbSep get(dbeMiniExplorerTree))
+	
+	if(showModules){
+		if (itemMatchesMaskModulLinkDescriptive(item(sel)))
+		{
+			active(dbeMiniExplorerOkButton)
+		} else
+		{
+			inactive(dbeMiniExplorerOkButton)
+		}
+	}else{
+		if (itemMatchesMaskFolder(item(sel)))
+		{
+			active(dbeMiniExplorerOkButton)
+		} 
+		else
+		{
+			inactive(dbeMiniExplorerOkButton)
+		}
+	}
+}
+
+/******************************************************************************
+	doSelect
+******************************************************************************/
+void doSelect(DBE dbe) 
+{
+	changeOkButton();
+}
+
+/******************************************************************************
+	checkBoxReact
+******************************************************************************/
+void checkBoxReact(DBE dbe)
+{
+    changeOkButton();
+}
+
+
+/******************************************************************************
+	doExpand
+******************************************************************************/
+bool doExpand(DBE dbe, string sItem) 
+{
+    string sItemPath = dbSep sItem
+    string sDummyItem = sItemPath dbSep dummyItem
+    if (exists(dbeMiniExplorerTree, sDummyItem) == true)
+    {
+        // remove dummy		
+        delete(dbeMiniExplorerTree, sDummyItem)
+    }
+    // check status
+    if (theCurrentView == DATABASE_VIEW)
+    {
+        // adjust view accordingly    
+        displayBranch(dbeMiniExplorerTree, sItemPath)
+    }
+    else
+    {
+        Project prjOldRoot = getRootProject_()
+        setRootProject_(project(getRootOfPath sItemPath))
+        // adjust view accordingly    
+        displayBranch(dbeMiniExplorerTree, sItemPath)
+        setRootProject_(prjOldRoot)
+    }
+    return true
+}
+
+
+/******************************************************************************
+	fnChangeToStartFolder
+******************************************************************************/
+void fnChangeToStartFolder(Folder fStart)
+{
+    if (!null fStart)
+    {
+        int iInde
+        // calculate max bound for loop
+        int iFinish = length(rootName_(fStart))
+        // prepare initial path
+        string sFolderPath = ((theCurrentView == DATABASE_VIEW) ? dbDisplayRoot() : "")
+        // process string
+        for iIndex in 0 : iFinish by 1 do
+        {
+            // obtain character
+            string sCharacter = (rootName_(fStart))[iIndex:iIndex]
+            // check status
+            if (sCharacter == dbSep || iIndex == iFinish) 
+            {
+                // check status
+                if (theCurrentView == PROJECT_VIEW && sFolderPath == dbSep) 
+					continue
+                // update explorer
+                displayBranch(dbeMiniExplorerTree, sFolderPath)
+            }
+            sFolderPath = sFolderPath sCharacter
+        }   
+        // update explorer
+        set(dbeMiniExplorerTree, sFolderPath)
+    }
+    else
+    {
+        // default to database level
+        displayBranch(dbeMiniExplorerTree, dbDisplayRoot())
+        set(dbeMiniExplorerTree, dbDisplayRoot())
+    }
+}
+
+
+
+
+
+/******************************************************************************
+	miniExplorer
+	
+	Provides a tree view for user to select an item from the database.
+	
+	Parameters:
+	
+		dbParent		Parent dialog box. Returns focus to this dialog
+						on closing.
+						
+		fStart			Folder to open in the tree when the dialog is first
+		                displayed.	
+		                
+		itemMask		Mask used to filter items that are displayed.
+		                
+		okActiveOnFolder		If true display folders/module/link/Descriptives, else only folders
+		
+	Returns fullname of selected item or an empty string.
+******************************************************************************/
+string miniExplorer(DB  dbParent, 
+                        Folder fStart, 
+                        int    itemMask,
+						string txt,
+						bool okActiveOnFolder)
+{
+	showModules = okActiveOnFolder;
+	string  pName = ""
+    Project pRoot = null
+
+	miniExplorerItemMask   = itemMask 
+        
+    if (null dbParent)
+    {
+	    dbMiniExplorer = create("Browser")
+    }
+    else
+    {
+    	dbMiniExplorer = create(dbParent, "Browser")
+	}
+
+    label(dbMiniExplorer, txt)
+
+    dbeMiniExplorerTree = treeView(dbMiniExplorer, treeViewOptionSorted, 400, 15)
+
+    dbeMiniExplorerOkButton = apply(dbMiniExplorer, "OK", doOk)
+
+	// create our own close and ok buttons
+	close(dbMiniExplorer, false, doNothing)
+	ok(dbMiniExplorer, "Cancel", doCancel)
+	
+	if(showModules){
+		onlyTemplateBox = toggle(dbMiniExplorer, "Only select templates modules", true)
+		set(onlyTemplateBox, checkBoxReact)
+
+	}
+    
+	realize dbMiniExplorer
+	set(dbeMiniExplorerTree, doSelect, doActivateOK);
+    set(dbeMiniExplorerTree, doExpand)
+	
+    inactive(dbeMiniExplorerOkButton)
+    // check status
+    if (theCurrentView == DATABASE_VIEW)
+    {
+        // adjust accordingly
+        insert(dbeMiniExplorerTree, dbDisplayRoot(), iconDatabase, iconDatabase)    
+    }
+    else
+    {
+        pRoot = getRootProject_()
+        setRootProject_(null)
+
+        // process database
+        for pName in database do
+        {
+            addItem(dbeMiniExplorerTree, item(dbSep pName))
+        }
+        setRootProject_(pRoot)
+    }
+
+    fnChangeToStartFolder(fStart)
+
+    block(dbMiniExplorer)
+
+    destroy(dbMiniExplorer)
+
+    return(miniExplorerSelectedItem)
+}
+
+
+/////////////////////////////////////////// ----- TreeView ----- ///////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+
+//***********************************************************
+/// @getUserSelection(string infoString)
+/// @brief User selects module containing list of formal modules by browsing DOORS
+///
+/// @param[in] infoString:	The source template item
+
+/// @return string userSel
+///
+//***********************************************************
+
+DB  db
+DBE dbeBrowse
+DBE dbeModule
+
+string getUserSelection(string infoString,  bool moduleTrueOrFolder )
+{	
+	db = create("Demonstrate Mini Explorer")
+	Item i = getSelectedItem();
+	Folder folderBrowser;
+	if(type i != "Folder" && type i != "Project"){
+		folderBrowser = getParentFolder(i);
+	}else{
+		folderBrowser = folder(i);
+	}
+  //  string userSel = fnMiniExplorer(folderBrowser, MINI_EXP_FORMAL_MODS, "Browse", infoString);
+	string userSel = miniExplorer(db, current Folder, MINI_EXP_FORMAL_MODS, infoString, /*true : show module, else folders+modules*/moduleTrueOrFolder);
+
+    return userSel ;
+}
+
+
+//***********************************************************
+/// @createItemfromTemplate(string src_template, string new_name, string new_desc, Folder f_dest)
+/// @brief Copy the template module, paste it to the destination folder then rename the module
+///
+/// @param[in] src_template:	The source template item
+/// @param[in] new_name:	The new item name 
+/// @param[in] new_desc:	The new item description
+/// @param[in] f_dest:		The new item  destination folder
+///
+//***********************************************************
+string createItemfromTemplate(Item i_ref, string new_name, string new_desc, Folder f_dest)
+{ 
+	Folder f_ref
+	string errmsg
+	string template_name
+	string full_template_name
+	string f_dest_name
+	const string ROOT = "/"
+
+	// Get the current configuration
+
+	f_dest_name = fullName(f_dest)
+	if (f_dest_name == ROOT) f_dest_name = ""
+	template_name = name(i_ref)
+	full_template_name = fullName(i_ref)
+	f_ref = getParentFolder(i_ref)
+
+	// Copy Paste from template in current configuration
+	clipCopy(i_ref)
+
+	errmsg = clipPaste(f_ref)
+	if(!null errmsg) {
+		errorDisplayExit (errmsg);
+	}
+
+	errmsg = clipClear(true)
+	if(!null errmsg){
+		errorDisplayExit (errmsg);
+	}
+
+	//Find the new created item in  destination folder(must be "Copy of" template_name))
+	Item new_item
+	Item i
+	string copy_name
+	Regexp I_NAME = regexp2 "(^.*)" template_name "$"
+	//
+	for i in f_ref do {
+	copy_name = fullName(i)
+	if (I_NAME copy_name){
+	   if (i != i_ref){
+		new_item = i
+		}
+	  }
+	}
+	//Move new item to destination folder
+	errmsg = move(new_item, f_dest)
+	if(!null errmsg){
+		delete(new_item)
+		purge (new_item)
+		errorDisplayExit (errmsg);
+	}
+
+	//Rename the new created item from  "Copy of name(i)"  to "new_name"
+	errmsg = rename (new_item, new_name, new_desc)
+	if(!null errmsg){
+		delete(new_item)
+		purge (new_item)
+		errorDisplayExit (errmsg);
+	}
+	//Make the new item visible			    
+	refreshDBExplorer();    
+	return;
+}//createItemfromTemplate
+
+
+
+
+void run_Copy_fct(DB box) {
+	//////Rename the output//////
+	string finalRenaming = renamedModule get(dbeField)
+	createItemfromTemplate(itemRefTemplate, finalRenaming, description(itemRefTemplate), folder(itemDestinationFolder))
+
+}
+
+//***********************************************************
+/// @analyzePrefixesProject(Item itmWork)
+/// @brief Analyze all the project (folders and subfolders) from where the template is copied, in order to find the right prefix
+///
+/// @param[in] itmWork:	any item
+///
+//***********************************************************
+void analyzePrefixesProject(Item itmWork) {
+	if (type(itmWork) == "Project") {
+		Item itmHelp;
+		for itmHelp in folder(itmWork) do {
+			analyzePrefixesProject(itmHelp);
+		}
+	}
+	if (type(itmWork) == "Folder") {
+		Item itmHelp;
+		for itmHelp in folder(itmWork) do {
+			analyzePrefixesProject(itmHelp);
+		}
+	}
+	if (type(itmWork) == "Formal") {
+		prefixUsed = name(itmWork);
+		prefixUsed = prefixUsed[0:3];
+		if(isValidInt prefixUsed){
+			intPrefixUsed = intOf(prefixUsed)
+			if(intPrefixUsed == intPrefix){
+				intPrefix++;
+			}
+		}
+	}
+}//analyzePrefixesProject
+
+
+//***********************************************************
+/// @getPrefixToUse()
+/// @brief Find prefix to use by running the analyzePrefixesProject() function
+///
+/// @return strPrefix : the prefix to use for the copie and paste function
+///
+//***********************************************************
+string getPrefixToUse(){
+	string NameOfModuleTemplate = name(itemRefTemplate);
+	string strPrefix = NameOfModuleTemplate[0:1];
+	
+	intPrefix = intOf(strPrefix)*100+1; //to obtain 1001 from 10
+	int tmp_prefix = 0;
+	
+	Project projectTop = getParentProject(folder(itemDestinationFolder));
+	uniqueIdProject = uniqueID(projectTop);
+	itemProject = itemFromID(uniqueIdProject);
+	string prefixGenerated = strPrefix;
+	while(tmp_prefix != intPrefix){
+		tmp_prefix = intPrefix;
+		analyzePrefixesProject(itemProject); //start by loocking for 1001 (if input is 10xx). If there already is a module 1001, then prefix++ to get 1002. But we may have missed 1002 module from the beginning of the loop. So relaunch the test.
+	}	
+	strPrefix = intPrefix "";
+	return strPrefix;
+}//getPrefixToUse
+
+//! \fn run_GUI
+//! \return void
+//! \brief This function creates the formal modules
+
+
+//***********************************************************
+/// @run_GUI()
+/// @brief Run the major function of the script which contains three steps with GUI. 
+/// @brief Step 1 --- USER SELECTION - FORMAL MODULE TEMPLATE
+/// @brief Step 2 --- USER SELECTION - FOLDER DESTINATION
+/// @brief Step 3 --- RENAMING
+///
+//***********************************************************
+void runGUI ()
+{
+	////////STEP 1 --- USER SELECTION - FORMAL MODULE TEMPLATE////////
+	string formalModuleTemplate  = "";
+    formalModuleTemplate   = getUserSelection("STEP 1 : Select a Formal Modules Template", true);
+	if(null formalModuleTemplate){
+		exitWithoutError();
+	}
+	itemRefTemplate = item(formalModuleTemplate );
+	
+	////////STEP 2 --- USER SELECTION - FOLDER DESTINATION////////
+	string folderToCopyModule;
+	folderToCopyModule = getUserSelection("STEP 2 : Select Target Folder", false);
+	if(null folderToCopyModule){
+		exitWithoutError();
+	}
+	itemDestinationFolder = item(folderToCopyModule);       
+
+	////////STEP 3 --- RENAME////////
+	DB db2 = create("STEP 3 : Rename", styleCentered);
+	label (db2, "New module name :");
+
+	if(isTemplateModule(itemRefTemplate))
+	{
+		string nameAfterCopy = name(itemRefTemplate);
+		int nameLength = length (nameAfterCopy);
+		nameAfterCopy = nameAfterCopy[4:nameLength-4];
+		string prefix = getPrefixToUse();
+		renamedModule = prefix nameAfterCopy;
+		dbeField = field(db2,renamedModule,"AddProjectName", 50, false);
+	}else{
+		renamedModule = name(itemRefTemplate);
+		dbeField = field(db2,null,renamedModule, 50, false);
+	}
+	ok(db2, "Run", run_Copy_fct);
+	realize db2;
+	show db2;
+}//run_GUI
+
+
+
+void main()
+{
+	Date dateAndTime = dateAndTime(today());
+	print "Running Script - "dateAndTime"\n";
+	runGUI();
+}
+
+logStart("DVS - Copy Module from Template")
+main();
+logEnd();
