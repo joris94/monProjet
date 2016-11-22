@@ -1,0 +1,17 @@
+Git commandes:
+
+git status > 
+	voir ce qui a changé
+git add $fichier > 
+	ajouter un fichier dans le projet git
+git commit -a -m "message"> 
+	commiter ts les fichiers qui ont été modifié, ou -a peut être remplacé par un ou plusieurs fichiers
+git log > 
+	git log --stat (plus court résumé) > git log -p (détaillé) > Q pour quitter
+git reset HEAD^ > 
+	annule le dernier commit HEAD : dernier commit ;HEAD^ : avant-dernier commit ;HEAD^^ : avant-avant-dernier commit ;HEAD~2 : avant-avant-dernier commit (notation équivalente) ;d6d98923868578a7f38dea79833b56d0326fcba1 : indique un numéro de commit précis ;d6d9892 : indique un numéro de commit précis (notation équivalente à la précédente, bien souvent écrire les premiers chiffres est suffisant tant qu’aucun autre commit ne commence par les mêmes chiffres). git reset HEAD $fichierAsupprimerQuiAétéCommité
+git checkout $file >
+	Le fichier redeviendra comme il était lors du dernier commit. (récupérer un fichier sensé être clean)
+
+escape + :wq >
+		Quitter sauvegarder et quitter Vim
