@@ -4,6 +4,9 @@
 pragma		encoding, "UTF-8";
 Item		itemRefTemplate, itemDestinationFolder;
 
+
+
+
 string		renamedModule;
 DBE			dbeField;
 int 		intPrefix;
