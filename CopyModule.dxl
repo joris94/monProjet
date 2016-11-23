@@ -335,20 +335,23 @@ void checkBoxReact(DBE dbe)
 
     string sel = getRealPath(dbSep get(dbeMiniExplorerTree))
     Item it = item sel
-	Project fStart =  getParentProject (it)
+	Project p =  getParentProject (it)
 	Folder selectInTree = getParentFolder(it)
-	if(null fStart){
-		fStart = project it;
-		uniqueIdProject = uniqueID(fStart);
+	if(type it == "Folder"){
+		selectInTree = folder(it);
+	}
+	if(null p){
+		p = project (it);
+		uniqueIdProject = uniqueID(p);
 		it = itemFromID(uniqueIdProject);
 		selectInTree = folder it;
 	}
-    if (fStart != null) 
+    if (p != null) 
     {
         Item i
         string displayPath;
-        for i in fStart do
-        { 
+        for i in p do
+        {
         	displayPath = getDisplayPath(i)
         	if (get(onlyTemplateBox)){ 
 				if(type i == "Formal" && !isTemplateModule(i)){
@@ -361,7 +364,6 @@ void checkBoxReact(DBE dbe)
     		}
 
         }
-
         fnChangeToStartFolder(selectInTree);       
     }
 }
