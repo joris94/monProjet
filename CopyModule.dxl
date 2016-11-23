@@ -64,9 +64,9 @@ bool isTemplateModule(Item item)
 }
 
 /******************************************************************************
-	itemMatchesMaskModulLinkDescriptive
+	itemMatchesMaskModule
 ******************************************************************************/
-bool itemMatchesMaskModulLinkDescriptive(Item itm)
+bool itemMatchesMaskModule(Item itm)
 {
 	if (type(itm) == "Formal" )
 	{
@@ -76,14 +76,14 @@ bool itemMatchesMaskModulLinkDescriptive(Item itm)
 		}
 		return (true);
 	}
-	if (type(itm) == "Link" || type(itm) == "Descriptive" )
+	/*if (type(itm) == "Link" || type(itm) == "Descriptive" )
 	{
 		if(get (onlyTemplateBox)){
 			bool statut = isTemplateModule(itm);
 			return (statut);
 		}
 		return(true)
-	}
+	}*/
 	return(false)
 }
 
@@ -119,7 +119,7 @@ void doActivateOK(DBE dbe)
 {
 	string sel = getRealPath(dbSep get(dbeMiniExplorerTree))
 	if(showModules){
-		if (itemMatchesMaskModulLinkDescriptive(item(sel)))
+		if (itemMatchesMaskModule(item(sel)))
 		{
 			miniExplorerSelectedItem = sel
 			release(dbMiniExplorer)
@@ -185,7 +185,10 @@ void addItem(DBE dbe, Item i)
             else 
             {
 				if(showModules){
-					insert(dbeMiniExplorerTree, displayPath, getIcon(i), getIcon(i))
+					if (itemMatchesMaskModule(i))
+					{
+						insert(dbeMiniExplorerTree, displayPath, getIcon(i), getIcon(i))
+					}
 				}else{
 					if (itemMatchesMaskFolder(i))
 					{
@@ -224,7 +227,7 @@ void changeOkButton()
 	string sel = getRealPath(dbSep get(dbeMiniExplorerTree))
 	
 	if(showModules){
-		if (itemMatchesMaskModulLinkDescriptive(item(sel)))
+		if (itemMatchesMaskModule(item(sel)))
 		{
 			active(dbeMiniExplorerOkButton)
 		} else
@@ -251,13 +254,6 @@ void doSelect(DBE dbe)
 	changeOkButton();
 }
 
-/******************************************************************************
-	checkBoxReact
-******************************************************************************/
-void checkBoxReact(DBE dbe)
-{
-    changeOkButton();
-}
 
 
 /******************************************************************************
@@ -326,6 +322,48 @@ void fnChangeToStartFolder(Folder fStart)
         // default to database level
         displayBranch(dbeMiniExplorerTree, dbDisplayRoot())
         set(dbeMiniExplorerTree, dbDisplayRoot())
+    }
+}
+
+/******************************************************************************
+	checkBoxReact
+******************************************************************************/
+void checkBoxReact(DBE dbe)
+{
+    changeOkButton();
+
+
+    string sel = getRealPath(dbSep get(dbeMiniExplorerTree))
+    Item it = item sel
+	Project fStart =  getParentProject (it)
+	Folder selectInTree = getParentFolder(it)
+	if(null fStart){
+		fStart = project it;
+		uniqueIdProject = uniqueID(fStart);
+		it = itemFromID(uniqueIdProject);
+		selectInTree = folder it;
+	}
+    if (fStart != null) 
+    {
+    	print "OK\n"
+        Item i
+        string displayPath;
+        for i in fStart do
+        { 
+        	displayPath = getDisplayPath(i)
+        	if (get(onlyTemplateBox)){ 
+				if(type i == "Formal" && !isTemplateModule(i)){
+        			delete(dbeMiniExplorerTree, displayPath)
+        		}
+    		}else{ 
+				if(type i == "Formal" && !isTemplateModule(i)){
+        			addItem(dbeMiniExplorerTree, i)
+        		}
+    		}
+
+        }
+
+        fnChangeToStartFolder(selectInTree);       
     }
 }
 
