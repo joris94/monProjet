@@ -345,7 +345,6 @@ void checkBoxReact(DBE dbe)
 	}
     if (fStart != null) 
     {
-    	print "OK\n"
         Item i
         string displayPath;
         for i in fStart do
