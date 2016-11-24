@@ -2,7 +2,7 @@
 
 //! GLOBALS
 pragma		encoding, "UTF-8";
-string		folderOfTemplates = "/p-DE-BIE2-TRAIN19";
+//string		folderOfTemplates = "/p-DE-BIE2-TRAIN19";
 
 void errorDisplayExit(string msg)
 {
@@ -10,9 +10,20 @@ void errorDisplayExit(string msg)
 	logEnd();
 	halt();
 }
+bool isTemplateModule(Item item)
+{	
+	string strItem = name (item);
+	string strShouldBeXX = strItem[2:3];
+	int lenghtStr = length (strItem);
+	strShouldBe_tpl = strItem[lenghtStr-4:lenghtStr-1]
+	if( (strShouldBeXX != "XX" && strShouldBeXX != "xx") || strShouldBe_tpl != "_tpl"){
+		return (false);
+	}
+	return (true);
+}
 
 bool isTemplateModule(Module m)
-{	
+{
 	string strItem = name (m);
 	string strShouldBeXX = strItem[2:3];
 	int lenghtStr = length (strItem);
@@ -23,29 +34,115 @@ bool isTemplateModule(Module m)
 	return (true);
 }
 
+
+Skip lnkName = create;
+Skip lnkSource = create;
+Skip lnkTrget = create;
+Item itemIsTheTplate;
+/******************************************************************************
+	scanFolder
+******************************************************************************/
+void scanLinkSetPairingOfFolder(Folder f) 
+{
+	LinkModuleDescriptor lmd
+	//print "\n"name(itemIsTheTplate)"\n"
+
+	Item itm
+   	int key = 0, offset, length
+
+	if (null f) return
+	for lmd in f do
+	{
+		//print "Name  "getName(lmd)"\n    source: "getSourceName(lmd)"\n        target: "getTargetName(lmd)"\n"
+		//print "\nLooking for: "name(itemIsTheTplate)"    in    "getSourceName(lmd)
+		if(findPlainText (getSourceName(lmd), name(itemIsTheTplate), offset, length, true)){
+			print "\nAdd:\n\t"(getSourceName(lmd))"\n\t\t"getName(lmd)"\n\t\t\t"getTargetName(lmd)
+			/*put(lnkSource, key , getSourceName(lmd))
+			put(lnkName, key , getName(lmd))
+			put(lnkTrget, key, getTargetName(lmd))
+*/
+			key++
+		}
+
+		
+	}
+			
+	for itm in f do //analyze subfolders
+	{
+		if (null itm) continue
+		if (isDeleted(itm)) continue
+	   
+		if ((type (itm) == "Project") || (type (itm) == "Folder"))
+		{
+			scanLinkSetPairingOfFolder(folder(itm))	   
+		}
+	}
+}
+
+
 void main()
 {
-	Module m = current;
-	if (null m){
+	Module inputModule = current;
+	string moduleName = name(inputModule);
+	if (null inputModule){
 		errorDisplayExit ("This script shall be executed in a module context");
 	}
-	if(isTemplateModule(m)){
+	if(isTemplateModule(inputModule)){
 		errorDisplayExit ("This script shall not be executed on a template module");
 	}
 	Date dateAndTime = dateAndTime(today());
 	print "Running Script - "dateAndTime"\n";
 
 	//get category of module by reading prefix
-	string categoryOfModule = name(m);
+	string categoryOfModule = name(inputModule);
 	categoryOfModule = categoryOfModule[0:1];
-	print "Now find the " categoryOfModule "  category in the folder "folderOfTemplates;
 
-	//find template prefixXX_..._tpl template module
-	current = project(folderOfTemplates); // current is now Project
-	print "\n"name(current) "  -  " type current
+	//find template prefixXX_..._tpl template module in current folder
+	Folder currentFolder = getParentFolder(inputModule)
 
+	//find template in current folder
+	Item itemInCurrentFolder = null;
+	string strItemIsTheTplate = null;
+	for itemInCurrentFolder in currentFolder do
+	{
+		//print name itemInCurrentFolder"\n"
+		if(isTemplateModule(itemInCurrentFolder)){
+			tplateCat = (name(itemInCurrentFolder))[0:1];
+			tplateName = (name(itemInCurrentFolder))[4:(length(name(itemInCurrentFolder)))-4]
+			rexep = tplateCat"[0-9][0-9]"tplateName
+			Regexp I_NAME = regexp2 (rexep)
+			if(I_NAME moduleName){
+				//print "\n "name(itemInCurrentFolder)" is template of " name(inputModule)"\n"
+				strItemIsTheTplate = name (itemInCurrentFolder)
+			}
+		}
+	}
+	if(null strItemIsTheTplate){//template not found -> search in 
+		//DO AFTER
+	}
+	else
+	{ //template found in the current folder
+		itemIsTheTplate = item(strItemIsTheTplate)
+	//	ModName_ tplateModule = module(name(itemIsTheTplate));
+		//Module tplateModule = module(itemIsTheTplate);
+		//print name(tplateModule)
+		Module moduleTplate = read(strItemIsTheTplate,false)
+		scanLinkSetPairingOfFolder(getParentFolder(itemIsTheTplate));
+		//read linkSet
+		/*Object o;
+		Linkset lnk;
+		for lnk in moduleTplate do
+		{
+				print " HELLO\n"
+
+			for lnk in o <- "*" do
+			{
+				print "     HELLO\n"
+			}
+		}*/
+	}
 }
 
-logStart("Test");
+logStart("DVS - Create traceability Links");
 main();
 logEnd();
