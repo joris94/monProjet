@@ -35,10 +35,10 @@ bool isTemplateModule(Module m)
 }
 
 
-Skip lnkName = create;
-Skip lnkSource = create;
-Skip lnkTrget = create;
+Skip lnkModDescSkip = create; //(key: int, value: LinkModuleDescriptor)
+
 Item itemIsTheTplate;
+int lengthKey;
 /******************************************************************************
 	scanFolder
 ******************************************************************************/
@@ -48,7 +48,8 @@ void scanLinkSetPairingOfFolder(Folder f)
 	//print "\n"name(itemIsTheTplate)"\n"
 
 	Item itm
-   	int key = 0, offset, length
+   	lengthKey = 0
+   	int offset, length
 
 	if (null f) return
 	for lmd in f do
@@ -56,15 +57,10 @@ void scanLinkSetPairingOfFolder(Folder f)
 		//print "Name  "getName(lmd)"\n    source: "getSourceName(lmd)"\n        target: "getTargetName(lmd)"\n"
 		//print "\nLooking for: "name(itemIsTheTplate)"    in    "getSourceName(lmd)
 		if(findPlainText (getSourceName(lmd), name(itemIsTheTplate), offset, length, true)){
-			print "\nAdd:\n\t"(getSourceName(lmd))"\n\t\t"getName(lmd)"\n\t\t\t"getTargetName(lmd)
-			/*put(lnkSource, key , getSourceName(lmd))
-			put(lnkName, key , getName(lmd))
-			put(lnkTrget, key, getTargetName(lmd))
-*/
-			key++
+		//	print "\nAdd:\n\t"(getSourceName(lmd))"\n\t\t"getName(lmd)"\n\t\t\t"getTargetName(lmd)
+			put(lnkModDescSkip, lengthKey,lmd)
+			lengthKey++
 		}
-
-		
 	}
 			
 	for itm in f do //analyze subfolders
@@ -118,28 +114,26 @@ void main()
 		}
 	}
 	if(null strItemIsTheTplate){//template not found -> search in 
-		//DO AFTER
+		//@todo - @JGO DO AFTER IF TPLATE IS NOT FOUND!!
+		errorDisplayExit("Template module of this module was not find");
 	}
 	else
 	{ //template found in the current folder
 		itemIsTheTplate = item(strItemIsTheTplate)
-	//	ModName_ tplateModule = module(name(itemIsTheTplate));
-		//Module tplateModule = module(itemIsTheTplate);
-		//print name(tplateModule)
+
 		Module moduleTplate = read(strItemIsTheTplate,false)
 		scanLinkSetPairingOfFolder(getParentFolder(itemIsTheTplate));
-		//read linkSet
-		/*Object o;
-		Linkset lnk;
-		for lnk in moduleTplate do
-		{
-				print " HELLO\n"
 
-			for lnk in o <- "*" do
-			{
-				print "     HELLO\n"
-			}
-		}*/
+		print "\nvaleur : "lengthKey"\n"
+		LinkModuleDescriptor lmdOfSkip
+
+		for (iKey = 0; iKey < lengthKey; iKey++){
+			print "\nGOGOGO\n"
+			find(lnkModDescSkip, iKey,lmdOfSkip)
+			print getSourceName(lmdOfSkip)"\n"
+			print getName(lmdOfSkip)"\n"
+			print getTargetName(lmdOfSkip)"\n"
+		}
 	}
 }
 
