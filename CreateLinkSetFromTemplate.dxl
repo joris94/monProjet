@@ -124,15 +124,48 @@ void main()
 		Module moduleTplate = read(strItemIsTheTplate,false)
 		scanLinkSetPairingOfFolder(getParentFolder(itemIsTheTplate));
 
-		print "\nvaleur : "lengthKey"\n"
 		LinkModuleDescriptor lmdOfSkip
-
-		for (iKey = 0; iKey < lengthKey; iKey++){
-			print "\nGOGOGO\n"
+		string target,expr, prefixTget, targetName, dirTget
+		Regexp EXPR_reg
+		Folder fTarget;
+		Item itemInF;
+		for (iKey = 0; iKey < lengthKey; iKey++){ //recreate each linkSet pairing of this for loop
+			print ("\n")
 			find(lnkModDescSkip, iKey,lmdOfSkip)
-			print getSourceName(lmdOfSkip)"\n"
+			/*print getSourceName(lmdOfSkip)"\n"
 			print getName(lmdOfSkip)"\n"
-			print getTargetName(lmdOfSkip)"\n"
+			print getTargetName(lmdOfSkip)"\n"*/
+			/*Find mall module where to copy this linksetPairing
+			//source is the input module
+			//link is the same
+			//target is the module found by using 11xx_custReq_tpl -> all module in project using 11 as prefix are sources
+			*/
+			target = getTargetName(lmdOfSkip);
+			expr = "[0-9][0-9]xx_.*_tpl"
+			EXPR_reg = regexp2 (expr)
+			if(!EXPR_reg target){
+				errorDisplayExit("Error target of template.")
+			}
+			//from target of module template, find prefix of the target, and the directory
+			targetName = target[match 0]
+			prefixTget = targetName[0:1]
+			int offset, length
+			findPlainText(target, targetName, offset, length, true)
+			dirTget = target[0:offset-1]
+			print "Prefix of target of template: "prefixTget
+			print "\n   Folder of target of template: "dirTget
+
+			//Now find all target in DIRTGET that begin with PREFIXTGET sans XX après
+			fTarget = folder(dirTget)
+			for itemInF in fTarget do
+			{
+				if (type itemInF == "Formal" && !isTemplateModule(itemInF) && (name(itemInF))[0:1] == prefixTget){
+					print "\n"moduleName" SHOULD BE LINKED TO "name itemInF" \n"
+				}
+				//print "\n    " name itemInF"\n"
+			}
+
+
 		}
 	}
 }
@@ -140,3 +173,12 @@ void main()
 logStart("DVS - Create traceability Links");
 main();
 logEnd();
+
+
+/*string addLinkModuleDescriptor(	Folder f,
+									string source,
+									string target,
+									bool overrideable,
+									[bool mandatory, ]
+									string linkmod,
+									string desc)	*/
