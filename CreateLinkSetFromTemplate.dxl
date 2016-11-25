@@ -2,14 +2,24 @@
 
 //! GLOBALS
 pragma		encoding, "UTF-8";
-//string		folderOfTemplates = "/p-DE-BIE2-TRAIN19";
+Skip 		lnkModName = create; //(key: int, value: LinkModuleDescriptor)
+Skip 		lnkModTgt = create;
+Item 		itemIsTheTplate;
+int 		lengthKey;
+//string	folderOfTemplates = "/p-DE-BIE2-TRAIN19";
 
+/******************************************************************************
+	errorDisplayExit
+******************************************************************************/
 void errorDisplayExit(string msg)
 {
 	ack(msg);
 	logEnd();
 	halt();
 }
+/******************************************************************************
+	isTemplateModule
+******************************************************************************/
 bool isTemplateModule(Item item)
 {	
 	string strItem = name (item);
@@ -21,7 +31,6 @@ bool isTemplateModule(Item item)
 	}
 	return (true);
 }
-
 bool isTemplateModule(Module m)
 {
 	string strItem = name (m);
@@ -34,18 +43,14 @@ bool isTemplateModule(Module m)
 	return (true);
 }
 
-
-Skip lnkModName = create; //(key: int, value: LinkModuleDescriptor)
-Skip lnkModTgt = create;
-Item itemIsTheTplate;
-int lengthKey;
 /******************************************************************************
-	scanFolder
+	scanLinkSetPairingOfFolder
+	Scan the folder of the module (global variable: itemIsTheTplate) to find
+	linkset Paring with this module as source
 ******************************************************************************/
 void scanLinkSetPairingOfFolder(Folder f) 
 {
 	LinkModuleDescriptor lmd
-	//print "\n"name(itemIsTheTplate)"\n"
 
 	Item itm
    	lengthKey = 0
@@ -61,7 +66,7 @@ void scanLinkSetPairingOfFolder(Folder f)
 			lengthKey++
 		}
 	}
-			
+
 	for itm in f do //analyze subfolders
 	{
 		if (null itm) continue
