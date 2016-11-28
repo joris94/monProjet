@@ -516,6 +516,6 @@ void main()
 	}
 }
 
-logStart("DVS - Create traceability Links (test)");
+logStart("DVS - Create traceability Links");
 main();
 logEnd();
