@@ -10,18 +10,12 @@ int 		intPrefix;
 
 // item filters
 const int MINI_EXP_FP                       = 1
-const int MINI_EXP_LINK_MODS                = 2
 const int MINI_EXP_FORMAL_MODS              = 4
-const int MINI_EXP_DESCRIPTIVE_MODS         = 8
-const int MINI_EXP_SHOW_DELETED             = 16
-
 bool 	showModules							= null //IF TRUE browser show folder + module, else only folder.
 DBE 	onlyTemplateBox						= null
-
 DB     dbMiniExplorer                       = null
 DBE    dbeMiniExplorerTree                  = null
 DBE    dbeMiniExplorerOkButton              = null
-
 int    miniExplorerItemMask                 = MINI_EXP_FP
 string miniExplorerSelectedItem             = ""
 
@@ -167,7 +161,7 @@ void addItem(DBE dbe, Item i)
     if (exists(dbeMiniExplorerTree, displayPath) == false)
     {
         // check status
-        if (isDeleted(i) == false || (isDeleted(i) == true && ((miniExplorerItemMask & MINI_EXP_SHOW_DELETED) == MINI_EXP_SHOW_DELETED)))
+        if (isDeleted(i) == false)
         {
             // check item type
             if (type(i) == "Folder" || type(i) == "Project")

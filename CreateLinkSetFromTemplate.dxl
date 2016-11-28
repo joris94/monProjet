@@ -4,69 +4,365 @@
 pragma		encoding, "UTF-8";
 Skip 		lnkModName = create; //(key: int, value: LinkModuleDescriptor)
 Skip 		lnkModTgt = create;
-Item 		itemIsTheTplate;
-int 		lengthKey;
-//string	folderOfTemplates = "/p-DE-BIE2-TRAIN19";
+int 		lengthKey = 0;
+string		folderOfDVSTemplates = "/p-DE-BIE2-TRAIN19" //should be changed for production database
+
+// item filters
+const int MINI_EXP_FP                       = 1
+const int MINI_EXP_FORMAL_MODS              = 4
+DB     dbMiniExplorer                       = null
+DBE    dbeMiniExplorerTree                  = null
+DBE    dbeMiniExplorerOkButton              = null
+int    miniExplorerItemMask                 = MINI_EXP_FP
+string miniExplorerSelectedItem             = ""
+
+/******************************************************************************
+	isTemplateModule
+******************************************************************************/
+bool isTemplateModule(Item i)
+{
+	string strItem = name (i);
+	string strShouldBeXX = strItem[2:3];
+	int lenghtStr = length (strItem);
+	strShouldBe_tpl = strItem[lenghtStr-4:lenghtStr-1]
+	if( (strShouldBeXX != "XX" && strShouldBeXX != "xx") || strShouldBe_tpl != "_tpl"){
+		return (false);
+	}
+	return (true);
+}
+/******************************************************************************
+	itemMatchesMask
+******************************************************************************/
+bool itemMatchesMask(Item itm)
+{
+	if (type(itm) == "Formal" && isTemplateModule(itm))
+	{
+		return(true)
+	}  
+	return(false)
+}
+
+
+/******************************************************************************
+	doOk
+******************************************************************************/
+void doOk(DB db)
+{
+    miniExplorerSelectedItem = getRealPath(dbSep get(dbeMiniExplorerTree))
+
+    release(dbMiniExplorer)
+    hide(dbMiniExplorer)
+}
+
+
+/******************************************************************************
+	doActivate
+******************************************************************************/
+void doActivate(DBE dbe) 
+{
+	string sel = getRealPath(dbSep get(dbeMiniExplorerTree))
+	
+	if (itemMatchesMask(item(sel)))
+	{
+		miniExplorerSelectedItem = sel
+		
+		release(dbMiniExplorer)
+    	hide(dbMiniExplorer)
+	} 
+}
+
+
+/******************************************************************************
+	doCancel
+******************************************************************************/
+void doCancel(DB db)
+{
+    miniExplorerSelectedItem = ""
+
+    release(dbMiniExplorer)
+    hide(dbMiniExplorer)
+}
+
+
+
+/******************************************************************************
+	doNothing
+******************************************************************************/
+void doNothing(DB db)
+{
+	;
+}
+
+/******************************************************************************
+	addItem
+******************************************************************************/
+void addItem(DBE dbe, Item i)
+{
+    string displayPath = getDisplayPath(i)
+
+    // check status
+    if (exists(dbeMiniExplorerTree, displayPath) == false)
+    {
+        // check status
+        if (isDeleted(i) == false )
+        {
+            // check item type
+            if (type(i) == "Folder" || type(i) == "Project")
+            {
+                Icon iconOpen, iconClosed
+                string sDummyEntry = displayPath dbSep dummyItem
+
+                // assign project or folder specific icons
+                assignIcons(i, iconOpen, iconClosed)
+            
+                // add entry (plus dummy)                     
+                insert(dbeMiniExplorerTree, displayPath, iconClosed, iconOpen)
+                insert(dbeMiniExplorerTree, sDummyEntry, iconClosed, iconOpen)   
+            }
+            else 
+            {
+                if (itemMatchesMask(i))
+                {
+                	insert(dbeMiniExplorerTree, displayPath, getIcon(i), getIcon(i))
+                }
+            }
+        }
+    }
+}
+
+
+/******************************************************************************
+	displayBranch
+******************************************************************************/
+void displayBranch(DBE dbe, string sItemPath)
+{
+    Folder fStart = folder(getRealPath(sItemPath))
+    
+    if (fStart != null) 
+    {
+        Item i
+
+        for i in all fStart do
+        {  
+            addItem(dbeMiniExplorerTree, i)               
+        }
+    }
+}
+
+
+/******************************************************************************
+	doSelect
+******************************************************************************/
+void doSelect(DBE dbe) 
+{
+	string sel = getRealPath(dbSep get(dbeMiniExplorerTree))
+	
+	if (itemMatchesMask(item(sel)))
+	{
+		active(dbeMiniExplorerOkButton)
+	}
+	else
+	{
+		inactive(dbeMiniExplorerOkButton)
+	}
+}
+
+
+/******************************************************************************
+	doExpand
+******************************************************************************/
+bool doExpand(DBE dbe, string sItem) 
+{
+    string sItemPath = dbSep sItem
+    string sDummyItem = sItemPath dbSep dummyItem
+
+    // check status
+    if (exists(dbeMiniExplorerTree, sDummyItem) == true)
+    {
+        // remove dummy
+        delete(dbeMiniExplorerTree, sDummyItem)
+    }
+    
+    // check status
+    if (theCurrentView == DATABASE_VIEW)
+    {
+        // adjust view accordingly    
+        displayBranch(dbeMiniExplorerTree, sItemPath)
+    }
+    else
+    {
+        Project prjOldRoot = getRootProject_()
+
+        setRootProject_(project(getRootOfPath sItemPath))
+ 
+        // adjust view accordingly    
+        displayBranch(dbeMiniExplorerTree, sItemPath)
+
+        setRootProject_(prjOldRoot)
+    }
+
+    return true
+}
+
+
+/******************************************************************************
+	fnChangeToStartFolder
+******************************************************************************/
+void fnChangeToStartFolder(Folder fStart)
+{
+    if (!null fStart)
+    {
+        int iIndex
+
+        // calculate max bound for loop
+        int iFinish = length(rootName_(fStart))
+
+        // prepare initial path
+        string sFolderPath = ((theCurrentView == DATABASE_VIEW) ? dbDisplayRoot() : "")
+
+        // process string
+        for iIndex in 0 : iFinish by 1 do
+        {
+            // obtain character
+            string sCharacter = (rootName_(fStart))[iIndex:iIndex]
+
+            // check status
+            if (sCharacter == dbSep || iIndex == iFinish) 
+            {
+                // check status
+                if (theCurrentView == PROJECT_VIEW && sFolderPath == dbSep) 
+                    continue
+
+                // update explorer
+                displayBranch(dbeMiniExplorerTree, sFolderPath)
+            }
+             
+            sFolderPath = sFolderPath sCharacter
+        }   
+
+        // update explorer
+        set(dbeMiniExplorerTree, sFolderPath)
+    }
+    else
+    {
+        // default to database level
+        displayBranch(dbeMiniExplorerTree, dbDisplayRoot())
+        set(dbeMiniExplorerTree, dbDisplayRoot())
+    }
+}
+
+
+/******************************************************************************
+	miniExplorer
+	Provides a tree view for user to select an item from the database.
+	Parameters:
+		dbParent		Parent dialog box. Returns focus to this dialog
+						on closing.				
+		fStart			Folder to open in the tree when the dialog is first
+		                displayed.	             
+		itemMask		Mask used to filter items that are displayed. 	
+
+	Returns fullname of selected item or an empty string.
+******************************************************************************/
+string miniExplorer(DB     dbParent, 
+                         Folder fStart, 
+                         int    itemMask)
+{
+	string  pName = ""
+    Project pRoot = null
+
+	miniExplorerItemMask   = itemMask 
+        
+    if (null dbParent)
+    {
+	    dbMiniExplorer = create("Browser")
+    }
+    else
+    {
+    	dbMiniExplorer = create(dbParent, "smart Mini Explorer")
+	}
+
+	
+    label(dbMiniExplorer, "Please select a formal module template...")
+
+    dbeMiniExplorerTree = treeView(dbMiniExplorer, treeViewOptionSorted, 400, 15)
+
+    dbeMiniExplorerOkButton = apply(dbMiniExplorer, "OK", doOk)
+
+	// create our own close and ok buttons
+	close(dbMiniExplorer, false, doNothing)
+	ok(dbMiniExplorer, "Cancel", doCancel)
+
+    realize dbMiniExplorer
+
+    set(dbeMiniExplorerTree, doSelect, doActivate)
+    set(dbeMiniExplorerTree, doExpand)
+
+    inactive(dbeMiniExplorerOkButton)
+    // check status
+    if (theCurrentView == DATABASE_VIEW)
+    {
+        // adjust accordingly
+        insert(dbeMiniExplorerTree, dbDisplayRoot(), iconDatabase, iconDatabase)    
+    }
+    else
+    {
+        pRoot = getRootProject_()
+        setRootProject_(null)
+
+        // process database
+        for pName in database do
+        {
+            addItem(dbeMiniExplorerTree, item(dbSep pName))
+        }
+    
+        setRootProject_(pRoot)
+    }
+
+    fnChangeToStartFolder(fStart)
+
+    block(dbMiniExplorer)
+
+    destroy(dbMiniExplorer)
+
+    return(miniExplorerSelectedItem)
+}
+
+
+
 
 /******************************************************************************
 	errorDisplayExit
 ******************************************************************************/
-void errorDisplayExit(string msg)
+void errorDisplayExit(string msg, bool showMsg)
 {
-	ack(msg);
+	if (showMsg) ack(msg);
+	print(msg);
 	logEnd();
 	halt();
 }
-/******************************************************************************
-	isTemplateModule
-******************************************************************************/
-bool isTemplateModule(Item item)
-{	
-	string strItem = name (item);
-	string strShouldBeXX = strItem[2:3];
-	int lenghtStr = length (strItem);
-	strShouldBe_tpl = strItem[lenghtStr-4:lenghtStr-1]
-	if( (strShouldBeXX != "XX" && strShouldBeXX != "xx") || strShouldBe_tpl != "_tpl"){
-		return (false);
-	}
-	return (true);
-}
-bool isTemplateModule(Module m)
-{
-	string strItem = name (m);
-	string strShouldBeXX = strItem[2:3];
-	int lenghtStr = length (strItem);
-	strShouldBe_tpl = strItem[lenghtStr-4:lenghtStr-1]
-	if( (strShouldBeXX != "XX" && strShouldBeXX != "xx") || strShouldBe_tpl != "_tpl"){
-		return (false);
-	}
-	return (true);
-}
+
 
 /******************************************************************************
 	scanLinkSetPairingOfFolder
 	Scan the folder of the module (global variable: itemIsTheTplate) to find
 	linkset Paring with this module as source
 ******************************************************************************/
-void scanLinkSetPairingOfFolder(Folder f) 
+void scanLinkSetPairingOfFolder(Folder f, Item i) 
 {
 	LinkModuleDescriptor lmd
-
-	Item itm
-   	lengthKey = 0
    	int offset, length
-
 	if (null f) return
 	for lmd in f do
 	{
-		if(findPlainText (getSourceName(lmd), name(itemIsTheTplate), offset, length, true)){
-			//	print "\nAdd:\n\t"(getSourceName(lmd))"\n\t\t"getName(lmd)"\n\t\t\t"getTargetName(lmd)
+		if(findPlainText (getSourceName(lmd), name(i), offset, length, true)){
+			//print "\nAdd:\n\t"(getSourceName(lmd))"\n\t\t"getName(lmd)"\n\t\t\t"getTargetName(lmd)
 			put(lnkModName, lengthKey,getName(lmd))
 			put(lnkModTgt, lengthKey,getTargetName(lmd))
 			lengthKey++
 		}
 	}
-
+	Item itm
 	for itm in f do //analyze subfolders
 	{
 		if (null itm) continue
@@ -74,100 +370,152 @@ void scanLinkSetPairingOfFolder(Folder f)
 	   
 		if ((type (itm) == "Project") || (type (itm) == "Folder"))
 		{
-			scanLinkSetPairingOfFolder(folder(itm))	   
+			scanLinkSetPairingOfFolder(folder(itm),i)	   
 		}
 	}
 }
 
 
+/******************************************************************************
+	getTemplateOfModuleFromDVS
+	Scan the dvs folder that contains templates and find the corresponding
+	template of the input module
+******************************************************************************/
+string getTemplateOfModuleFromDVS(Item itmWork, Module m) {
+	if (type(itmWork) == "Project") {
+		Item itmHelp;
+		for itmHelp in folder(itmWork) do {
+			str = getTemplateOfModuleFromDVS(itmHelp,m);
+			if(!null str) return str
+		}
+	}
+	if (type(itmWork) == "Folder") {
+		Item itmHelp;
+		for itmHelp in folder(itmWork) do {
+			str = getTemplateOfModuleFromDVS(itmHelp,m);
+			if(!null str) return str
+		}
+	}
+	if (type(itmWork) == "Formal") {
+		//print "found "name itmWork"\n"
+		if(isTemplateModule(itmWork)){
+			tplateCat = (name(itmWork))[0:1];
+			tplateName = (name(itmWork))[4:(length(name(itmWork)))-4]
+			rexep = tplateCat"[0-9][0-9]"tplateName
+			Regexp I_NAME = regexp2 (rexep)
+			if(I_NAME name(m)){
+				//print "\n "name(itmWork)" is template of " name(inputModule)"\n"
+				return fullName (itmWork)
+			}
+		}
+		return null;
+	}
+	return null
+}
+
+/******************************************************************************
+	getTemplateOfModule
+	Scan the folder of the input model to find template
+******************************************************************************/
+string getTemplateOfModule(Folder f, Module m)
+{
+	Item itemInFolder
+	for itemInFolder in f do
+	{
+		//print name itemInFolder"\n"
+		if (type(itemInFolder) == "Formal") {
+			if(isTemplateModule(itemInFolder)){
+				tplateCat = (name(itemInFolder))[0:1];
+				tplateName = (name(itemInFolder))[4:(length(name(itemInFolder)))-4]
+				rexep = tplateCat"[0-9][0-9]"tplateName
+				Regexp I_NAME = regexp2 (rexep)
+				if(I_NAME name(m)){
+					//print "\n "name(itemInFolder)" is template of " name(inputModule)"\n"
+					return fullName (itemInFolder)
+				}
+			}
+		}
+	}
+	return null
+}
+
 void main()
 {
 	Module inputModule = current;
-	string moduleName = name(inputModule);
 	if (null inputModule){
-		errorDisplayExit ("This script shall be executed in a module context");
+		errorDisplayExit ("This script shall be executed in a module context",true);
 	}
-	if(isTemplateModule(inputModule)){
-		errorDisplayExit ("This script shall not be executed on a template module");
+	if( isTemplateModule(item (name(inputModule)))){
+		errorDisplayExit ("This script shall not be executed on a template module",true);
 	}
 	Date dateAndTime = dateAndTime(today());
 	print "Running Script - "dateAndTime"\n";
 
-	//get category of module by reading prefix
-	string categoryOfModule = name(inputModule);
-	categoryOfModule = categoryOfModule[0:1];
 
-	//find template prefixXX_..._tpl template module in current folder
+	/////////////////////////////////////////////////////////////
+	///////////////////////Search Template///////////////////////
+	/////////////////////////////////////////////////////////////
 	Folder currentFolder = getParentFolder(inputModule)
-
-	//find template in current folder
-	Item itemInCurrentFolder = null;
-	string strItemIsTheTplate = null;
-	for itemInCurrentFolder in currentFolder do
-	{
-		//print name itemInCurrentFolder"\n"
-		if(isTemplateModule(itemInCurrentFolder)){
-			tplateCat = (name(itemInCurrentFolder))[0:1];
-			tplateName = (name(itemInCurrentFolder))[4:(length(name(itemInCurrentFolder)))-4]
-			rexep = tplateCat"[0-9][0-9]"tplateName
-			Regexp I_NAME = regexp2 (rexep)
-			if(I_NAME moduleName){
-				//print "\n "name(itemInCurrentFolder)" is template of " name(inputModule)"\n"
-				strItemIsTheTplate = name (itemInCurrentFolder)
+	string templateName = getTemplateOfModule(currentFolder,inputModule); 	//find template in current folder	
+	if(null templateName){//template not found in the current folder -> search in DVS template folders
+		print "Template not found in current folder. Searching in DVS templates folder...\n"
+		templateName = getTemplateOfModuleFromDVS(item folderOfDVSTemplates, inputModule);
+		if(null templateName) //DVS template not found -> let the user select the input
+		{
+			print "Template not found in DVS templates folder. User selection...\n"
+			templateName = miniExplorer(null, currentFolder,  MINI_EXP_FORMAL_MODS)
+			if(null templateName){
+				errorDisplayExit("No template selected.",true);
 			}
 		}
 	}
-	if(null strItemIsTheTplate){//template not found -> search in 
-		//@todo - @JGO DO AFTER IF TPLATE IS NOT FOUND!!
-		errorDisplayExit("Template module of this module was not find. TODO @JGO");
+	print "---> Template of \""name(inputModule) "\" is \""templateName"\".\n"
+	Module moduleTplate = read(templateName,false)
+
+	/////////////////////////////////////////////////////////////
+	///////////////////Compute Linkset Pairing///////////////////
+	/////////////////////////////////////////////////////////////
+	scanLinkSetPairingOfFolder(getParentFolder(item(templateName)), item(templateName)); //create two skip list "lnkModName" and lnkModTgt"
+	if(lengthKey == 0){
+		errorDisplayExit("No linkset pairing to perform according to the template.",false);
 	}
-	else
-	{ //template found in the current folder
-		itemIsTheTplate = item(strItemIsTheTplate)
+	string target,expr, prefixTget, targetName, dirTget, nameLnk
+	Regexp EXPR_reg
+	Folder fTarget;
+	Item itemInF;
+	int iKey = 0;
+	for (iKey = 0; iKey < lengthKey ; iKey++)
+	{
+		find(lnkModTgt,iKey,target);
+		find(lnkModName,iKey,nameLnk);
+		expr = "[0-9][0-9]xx_.*_tpl"
+		EXPR_reg = regexp2 (expr)
+		if(!EXPR_reg target){//should not happen...
+			errorDisplayExit("Error target of template.",false)
+		}
+		targetName = target[match 0] 
+		prefixTget = targetName[0:1]
+		int offset, length
+		findPlainText(target, targetName, offset, length, true)
+		dirTget = target[0:offset-1]
 
-		Module moduleTplate = read(strItemIsTheTplate,false)
-		scanLinkSetPairingOfFolder(getParentFolder(itemIsTheTplate)); //create a skip list "lnkModName"
-
-		
-		string target,expr, prefixTget, targetName, dirTget, nameLnk
-		Regexp EXPR_reg
-		Folder fTarget;
-		Item itemInF;
-		int iKey = 0;
-		LinkModuleDescriptor lmdOfSkip
-		for (iKey = 0; iKey < lengthKey ; iKey++)
+		//Now find all target in fTarget that begin with prefixTget without XX
+		fTarget = folder(dirTget)
+		for itemInF in fTarget do
 		{
-			find(lnkModTgt,iKey,target);
-			find(lnkModName,iKey,nameLnk);
-			expr = "[0-9][0-9]xx_.*_tpl"
-			EXPR_reg = regexp2 (expr)
-			if(!EXPR_reg target){//should not happen...
-				errorDisplayExit("Error target of template.")
-			}
-			targetName = target[match 0] 
-			prefixTget = targetName[0:1]
-			int offset, length
-			findPlainText(target, targetName, offset, length, true)
-			dirTget = target[0:offset-1]
-
-			//Now find all target in DIRTGET that begin with PREFIXTGET sans XX après
-			fTarget = folder(dirTget)
-			for itemInF in fTarget do
-			{
-				if (type itemInF == "Formal" && !isTemplateModule(itemInF) && (name(itemInF))[0:1] == prefixTget){
-					msg = addLinkModuleDescriptor(currentFolder, fullName(inputModule), fullName(itemInF), false, true, nameLnk, "TODO")
-					if(!null msg){
-						ack("\nProblem while creating link : \n"moduleName" ->>  " nameLnk " ->> "fullName(itemInF)"\nERROR: "msg)
-						print "\nProblem while creating link : \n"moduleName" ->>  " nameLnk " ->> "fullName(itemInF)"\nERROR: "msg"\n"
-					}	else{
-						print "\n"moduleName" ->>  " nameLnk " ->> "fullName(itemInF)" \n"
-					}
+			if (type itemInF == "Formal" && !isTemplateModule(itemInF) && (name(itemInF))[0:1] == prefixTget){
+				///////////////////CREATE LINKSET PAIRING///////////////////
+				msg = addLinkModuleDescriptor(currentFolder, fullName(inputModule), fullName(itemInF), false, true, nameLnk, "")
+				if(!null msg){
+					print "\nProblem while creating link : \n"name(inputModule)" ->  " nameLnk " -> "fullName(itemInF)"\nERROR: "msg"\n"
+				}	else{
+					print "\nLinking : "name(inputModule)" ->  " nameLnk " -> "fullName(itemInF)" \n"
 				}
 			}
 		}
 	}
 }
 
-logStart("DVS - Create traceability Links");
+logStart("DVS - Create traceability Links (test)");
 main();
 logEnd();
