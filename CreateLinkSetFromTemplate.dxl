@@ -2,7 +2,7 @@
 
 //! GLOBALS
 pragma		encoding, "UTF-8";
-Skip 		lnkModName = create; //(key: int, value: LinkModuleDescriptor)
+Skip 		lnkModName = create;
 Skip 		lnkModTgt = create;
 int 		lengthKey = 0;
 string		folderOfDVSTemplates = "/p-DE-BIE2-TRAIN19" //should be changed for production database
