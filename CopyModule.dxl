@@ -672,7 +672,7 @@ void runGUI ()
 		nameAfterCopy = nameAfterCopy[4:nameLength-4];
 		string prefix = getPrefixToUse();
 		renamedModule = prefix nameAfterCopy;
-		dbeField = field(db2,renamedModule,"AddProjectName", 50, false);
+		dbeField = field(db2,renamedModule,"", 50, false);
 	}else{
 		renamedModule = name(itemRefTemplate);
 		dbeField = field(db2,null,renamedModule, 50, false);

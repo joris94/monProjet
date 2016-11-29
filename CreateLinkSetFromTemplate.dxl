@@ -408,7 +408,6 @@ string getTemplateOfModuleFromDVS(Item itmWork, Module m) {
 				return fullName (itmWork)
 			}
 		}
-		return null;
 	}
 	return null
 }
