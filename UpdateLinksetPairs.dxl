@@ -438,9 +438,35 @@ string getTemplateOfModule(Folder f, Module m)
 	return null
 }
 
-void main()
+
+
+/******************************************************************************
+	urlInfo
+	Analyze the URL
+******************************************************************************/
+string getModuleNameFromURL(string url)
+// DESCRIPTION: Returns a string describing the target of the specified URL string.
 {
-	Module inputModule = current;
+	string result = null
+	ModuleVersion mv
+	int objectAbsno
+	Item i
+	string dbHost = null
+	int dbPort
+	string dbName
+	string dbID = null
+	result = decodeURL(url, dbHost, dbPort, dbName, dbID, i, mv, objectAbsno)
+	if (!null result)
+	{
+		errorDisplayExit("An error occured with URL input : "result,true)
+	}
+	return (fullName mv)
+}
+
+void main(string url)
+{
+	Item iModule = item(getModuleNameFromURL(url))
+	Module inputModule = module(iModule)
 	if (null inputModule){
 		errorDisplayExit ("This script shall be executed in a module context",true);
 	}
@@ -507,7 +533,9 @@ void main()
 				msg = addLinkModuleDescriptor(currentFolder, fullName(inputModule), fullName(itemInF), false, true, nameLnk, "")
 				if(!null msg){
 					print "\nProblem while creating link : \n"name(inputModule)" ->  " nameLnk " -> "fullName(itemInF)"\nERROR: "msg"\n"
-				}	else{
+				}
+				else
+				{
 					print "\nLinking : "name(inputModule)" ->  " nameLnk " -> "fullName(itemInF)" \n"
 				}
 			}
@@ -515,6 +543,8 @@ void main()
 	}
 }
 
-logStart("DVS - Create traceability Links");
-main();
+logStart("DVS - Update Linkset Pairs");
+/*ONLY AS EXAMPLE*/string argument = getURL(current Object)
+/*ONLY AS EXAMPLE*/print argument"\n"
+main(/*ONLY AS EXAMPLE*/argument);//argument should be a URL from a module!!
 logEnd();
