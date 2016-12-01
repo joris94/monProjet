@@ -1,0 +1,377 @@
+#include <D:\users\log\logInclude.dxl>
+
+// item filters
+const int MINI_EXP_FP                       = 1
+const int MINI_EXP_LINK_MODS                = 2
+const int MINI_EXP_FORMAL_MODS              = 4
+const int MINI_EXP_DESCRIPTIVE_MODS         = 8
+const int MINI_EXP_SHOW_DELETED             = 16
+
+// item filters
+const int MINI_EXP_SHOW_ALL_NO_DELETED      = 15
+const int MINI_EXP_SHOW_ALL                 = 31
+
+DB     dbMiniExplorer                       = null
+DBE    dbeMiniExplorerTree                  = null
+DBE    dbeMiniExplorerOkButton              = null
+
+int    miniExplorerItemMask                 = MINI_EXP_FP
+string miniExplorerSelectedItem             = ""
+
+/**********************************
+	itemMatchesMask
+***********************************/
+bool itemMatchesMask(Item itm)
+{
+	if (type(itm) == "Formal" && ((miniExplorerItemMask & MINI_EXP_FORMAL_MODS) == MINI_EXP_FORMAL_MODS))
+	{
+		return(false)
+	}
+
+	if (type(itm) == "Link" && ((miniExplorerItemMask & MINI_EXP_LINK_MODS) == MINI_EXP_LINK_MODS))
+	{
+		return(false)
+	}
+
+	if (type(itm) == "Descriptive" && ((miniExplorerItemMask & MINI_EXP_DESCRIPTIVE_MODS) == MINI_EXP_DESCRIPTIVE_MODS))
+	{
+		return(false)
+	}
+
+	return(true)
+}
+
+/************************************
+	doOk
+************************************/
+void doOk(DB db)
+{
+    miniExplorerSelectedItem = getRealPath(dbSep get(dbeMiniExplorerTree))
+
+    release(dbMiniExplorer)
+    hide(dbMiniExplorer)
+}
+
+/***********************************
+	doActivate
+************************************/
+void doActivate(DBE dbe)
+{
+	string sel = getRealPath(dbSep get(dbeMiniExplorerTree))
+
+	if (itemMatchesMask(item(sel)))
+	{
+		miniExplorerSelectedItem = sel
+
+		release(dbMiniExplorer)
+    	hide(dbMiniExplorer)
+	}
+}
+
+/**********************************
+	doCancel
+***********************************/
+void doCancel(DB db)
+{
+    miniExplorerSelectedItem = ""
+
+    release(dbMiniExplorer)
+    hide(dbMiniExplorer)
+}
+
+/************************************
+	doNothing
+*************************************/
+void doNothing(DB db)
+{
+	;
+}
+
+/**********************************
+	addItem
+************************************/
+void addItem(DBE dbe, Item i)
+{
+    string displayPath = getDisplayPath(i)
+
+    // check status
+    if (exists(dbeMiniExplorerTree, displayPath) == false)
+    {
+
+            // check item type
+            if (type(i) == "Folder" || type(i) == "Project")
+            {
+                Icon iconOpen, iconClosed
+                string sDummyEntry = displayPath dbSep dummyItem
+
+                // assign project or folder specific icons
+                assignIcons(i, iconOpen, iconClosed)
+
+                // add entry (plus dummy)
+                insert(dbeMiniExplorerTree, displayPath, iconClosed, iconOpen)
+                insert(dbeMiniExplorerTree, sDummyEntry, iconClosed, iconOpen)
+            }
+            else
+            {
+                if (itemMatchesMask(i))
+                {
+                	insert(dbeMiniExplorerTree, displayPath, getIcon(i), getIcon(i))
+                }
+            }
+        
+    }
+}
+
+/**********************************
+	displayBranch
+************************************/
+void displayBranch(DBE dbe, string sItemPath)
+{
+    Folder fStart = folder(getRealPath(sItemPath))
+
+    if (fStart != null)
+    {
+        Item i
+
+        for i in all fStart do
+        {
+            addItem(dbeMiniExplorerTree, i)
+        }
+    }
+}
+
+/**********************************
+	doSelect
+***********************************/
+void doSelect(DBE dbe)
+{
+	string sel = getRealPath(dbSep get(dbeMiniExplorerTree))
+
+	if (isDeleted(item(sel)))
+	{
+		active(dbeMiniExplorerOkButton)
+	}
+	else
+	{
+		inactive(dbeMiniExplorerOkButton)
+	}
+}
+
+/**********************************
+	doExpand
+************************************/
+bool doExpand(DBE dbe, string sItem)
+{
+    string sItemPath = dbSep sItem
+    string sDummyItem = sItemPath dbSep dummyItem
+
+    // check status
+    if (exists(dbeMiniExplorerTree, sDummyItem) == true)
+    {
+        // remove dummy
+        delete(dbeMiniExplorerTree, sDummyItem)
+    }
+
+    // check status
+    if (theCurrentView == DATABASE_VIEW)
+    {
+        // adjust view accordingly
+        displayBranch(dbeMiniExplorerTree, sItemPath)
+    }
+    else
+    {
+        Project prjOldRoot = getRootProject_()
+
+        setRootProject_(project(getRootOfPath sItemPath))
+
+        // adjust view accordingly
+        displayBranch(dbeMiniExplorerTree, sItemPath)
+
+        setRootProject_(prjOldRoot)
+    }
+
+    return true
+}
+
+/*************************************
+	fnChangeToStartFolder
+**************************************/
+void fnChangeToStartFolder(Folder fStart)
+{
+    if (!null fStart)
+    {
+        int iIndex
+
+        // calculate max bound for loop
+        int iFinish = length(rootName_(fStart))
+
+        // prepare initial path
+        string sFolderPath = ((theCurrentView == DATABASE_VIEW) ? dbDisplayRoot() : "")
+
+        // process string
+        for iIndex in 0 : iFinish by 1 do
+        {
+            // obtain character
+            string sCharacter = (rootName_(fStart))[iIndex:iIndex]
+
+            // check status
+            if (sCharacter == dbSep || iIndex == iFinish)
+            {
+                // check status
+                if (theCurrentView == PROJECT_VIEW && sFolderPath == dbSep)
+                    continue
+
+                // update explorer
+                displayBranch(dbeMiniExplorerTree, sFolderPath)
+            }
+
+            sFolderPath = sFolderPath sCharacter
+        }   
+
+        // update explorer
+        set(dbeMiniExplorerTree, sFolderPath)
+    }
+    else
+    {
+        // default to database level
+        displayBranch(dbeMiniExplorerTree, dbDisplayRoot())
+        set(dbeMiniExplorerTree, dbDisplayRoot())
+    }
+}
+
+/************************************
+	miniExplorer
+
+	Provides a tree view for user to select an item from the database.
+
+	Parameters:
+
+		dbParent		Parent dialog box. Returns focus to this dialog
+						on closing.
+
+		fStart			Folder to open in the tree when the dialog is first
+		                displayed.	
+
+		itemMask		Mask used to filter items that are displayed. 	
+
+	Returns fullname of selected item or an empty string.
+*************************************/
+string miniExplorer(DB     dbParent,
+                         Folder fStart,
+                         int    itemMask)
+{
+	string  pName = ""
+    Project pRoot = null
+
+	miniExplorerItemMask   = itemMask 
+
+    if (null dbParent)
+    {
+	    dbMiniExplorer = create("smart Mini Explorer")
+    }
+    else
+    {
+    	dbMiniExplorer = create(dbParent, "smart Mini Explorer")
+	}
+
+    label(dbMiniExplorer, "Please select an item to purge it...")
+
+    dbeMiniExplorerTree = treeView(dbMiniExplorer, treeViewOptionSorted, 400, 15)
+
+    dbeMiniExplorerOkButton = apply(dbMiniExplorer, "OK", doOk)
+
+	// create our own close and ok buttons
+	close(dbMiniExplorer, false, doNothing)
+	ok(dbMiniExplorer, "Cancel", doCancel)
+
+    realize dbMiniExplorer
+
+    set(dbeMiniExplorerTree, doSelect, doActivate)
+    set(dbeMiniExplorerTree, doExpand)
+
+    inactive(dbeMiniExplorerOkButton)
+    // check status
+    if (theCurrentView == DATABASE_VIEW)
+    {
+        // adjust accordingly
+        insert(dbeMiniExplorerTree, dbDisplayRoot(), iconDatabase, iconDatabase)
+    }
+    else
+    {
+        pRoot = getRootProject_()
+        setRootProject_(null)
+
+        // process database
+        for pName in database do
+        {
+            addItem(dbeMiniExplorerTree, item(dbSep pName))
+        }
+
+        setRootProject_(pRoot)
+    }
+
+    fnChangeToStartFolder(fStart)
+
+    block(dbMiniExplorer)
+
+    destroy(dbMiniExplorer)
+
+    return(miniExplorerSelectedItem)
+}
+
+/*************************************
+	miniExplorer
+
+	Filter not specified
+**************************************/
+string miniExplorer(DB dbParent, Folder fStart)
+{
+	return miniExplorer(dbParent, fStart, MINI_EXP_SHOW_ALL)
+}
+
+/**************************************
+	miniExplorer
+
+	Parent dialog not specified
+*************************************/
+string miniExplorer(Folder fStart, int itemMask)
+{
+	return miniExplorer(null, fStart, itemMask)
+}
+
+/*************************************
+	miniExplorer
+
+	Current folder not specified
+**************************************/
+string miniExplorer(DB dbParent, int itemMask)
+{
+	return miniExplorer(dbParent, null, itemMask)
+}
+
+/************************************
+	miniExplorer
+
+	No parameters
+************************************/
+string miniExplorer()
+{
+	return miniExplorer(null, null, MINI_EXP_SHOW_ALL)
+}           
+
+logStart("Purge Selected Item")
+Item i = item(miniExplorer (null,current, MINI_EXP_SHOW_DELETED))
+if(!null i){
+    string named = name i
+    errMsg = purge(i)
+    if(null errMsg)
+    {
+        print "purge OK - "named
+    }
+    else
+    {
+        print "FAILED : "errMsg
+    }
+    refreshDBExplorer(); 
+}
+logEnd()
