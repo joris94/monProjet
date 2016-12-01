@@ -437,7 +437,44 @@ string getTemplateOfModule(Folder f, Module m)
 	return null
 }
 
-
+/******************************************************************************
+	replaceString
+******************************************************************************/
+string replaceString (string sSource, string sSearch, string sReplace) {
+    int iLen = length sSource
+    if (iLen == 0) return ""
+    
+    int iLenSearch = length(sSearch)
+    
+    if (iLenSearch == 0) { 
+        //raiseError ("Parameter error", "in strings.inc/replace: search string must not be empty")
+        return "" 
+    }
+    
+    // read the first char for latter comparison -> speed optimization
+    char firstChar = sSearch[0]
+    
+    Buffer s = create() 
+    int pos = 0, d1,d2;    
+    int i
+    
+    while (pos < iLen) { 
+        char ch = sSource[pos]; 
+        bool found = true
+        
+        if (ch != firstChar) {pos ++; s+= ch; continue}
+        for (i = 1; i < iLenSearch; i++) {
+           if (sSource[pos+i] != sSearch[i]) { found = false; break }
+        }
+        if (!found) {pos++; s+= ch; continue}
+        s += sReplace
+        pos += iLenSearch
+    }
+    
+    string result = stringOf s
+    delete s
+    return result
+}
 
 /******************************************************************************
 	urlInfo
@@ -522,8 +559,8 @@ void main(string url)
 		int offset, length
 		findPlainText(target, targetName, offset, length, true)
 		dirTget = target[0:offset-1]
-
 		//Now find all target in fTarget that begin with prefixTget without XX
+		int tmpA = 0
 		fTarget = folder(dirTget)
 		for itemInF in fTarget do
 		{
