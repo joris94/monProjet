@@ -409,7 +409,7 @@ string getTemplateOfModuleFromDVS(Item itmWork, Module m) {
 			}
 		}
 	}
-	return null
+	return
 }
 
 /******************************************************************************
@@ -421,11 +421,10 @@ string getTemplateOfModule(Folder f, Module m)
 	Item itemInFolder
 	for itemInFolder in f do
 	{
-		//print name itemInFolder"\n"
 		if (type(itemInFolder) == "Formal") {
 			if(isTemplateModule(itemInFolder)){
 				tplateCat = (name(itemInFolder))[0:1];
-				tplateName = (name(itemInFolder))[4:(length(name(itemInFolder)))-4]
+				tplateName = (name(itemInFolder))[4:(length(name(itemInFolder)))-8]
 				rexep = tplateCat"[0-9][0-9]"tplateName
 				Regexp I_NAME = regexp2 (rexep)
 				if(I_NAME name(m)){

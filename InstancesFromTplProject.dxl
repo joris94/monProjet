@@ -9,20 +9,19 @@ string		folderOfDVSTemplates = "/p-DE-BIE2-TRAIN19" //should be changed for prod
 
 // item filters
 const int MINI_EXP_FP                       = 1
-const int MINI_EXP_FORMAL_MODS              = 4
+const int MINI_EXP_PROJECT	                = 4
+const int MINI_EXP_FOLDERS             		= 8
 DB     dbMiniExplorer                       = null
 DBE    dbeMiniExplorerTree                  = null
 DBE    dbeMiniExplorerOkButton              = null
 int    miniExplorerItemMask                 = MINI_EXP_FP
 string miniExplorerSelectedItem             = ""
-
-
 /******************************************************************************
 	itemMatchesMask
 ******************************************************************************/
 bool itemMatchesMask(Item itm)
 {
-	if (type(itm) == "Project" )
+	if ((type(itm) == "Project" && miniExplorerItemMask == MINI_EXP_PROJECT )|| (type(itm) == "Folder" && miniExplorerItemMask == MINI_EXP_FOLDERS ))
 	{
 		return(true)
 	}  
@@ -251,9 +250,7 @@ void fnChangeToStartFolder(Folder fStart)
 
 	Returns fullname of selected item or an empty string.
 ******************************************************************************/
-string miniExplorer(DB     dbParent, 
-                         Folder fStart, 
-                         int    itemMask)
+string miniExplorer(DB     dbParent, Folder fStart,  int    itemMask, string title)
 {
 	string  pName = ""
     Project pRoot = null
@@ -270,7 +267,7 @@ string miniExplorer(DB     dbParent,
 	}
 
 	
-    label(dbMiniExplorer, "Please select a Project ...")
+    label(dbMiniExplorer, title)
 
     dbeMiniExplorerTree = treeView(dbMiniExplorer, treeViewOptionSorted, 400, 15)
 
@@ -329,26 +326,179 @@ void errorDisplayExit(string msg, bool showMsg)
 	halt();
 }
 
+/******************************************************************************
+	replaceString
+******************************************************************************/
+string replaceString (string sSource, string sSearch, string sReplace) {
+    int iLen = length sSource
+    if (iLen == 0) return ""
+    
+    int iLenSearch = length(sSearch)
+    
+    if (iLenSearch == 0) { 
+        //raiseError ("Parameter error", "in strings.inc/replace: search string must not be empty")
+        return "" 
+    }
+    
+    // read the first char for latter comparison -> speed optimization
+    char firstChar = sSearch[0]
+    
+    Buffer s = create() 
+    int pos = 0, d1,d2;    
+    int i
+    
+    while (pos < iLen) { 
+        char ch = sSource[pos]; 
+        bool found = true
+        
+        if (ch != firstChar) {pos ++; s+= ch; continue}
+        for (i = 1; i < iLenSearch; i++) {
+           if (sSource[pos+i] != sSearch[i]) { found = false; break }
+        }
+        if (!found) {pos++; s+= ch; continue}
+        s += sReplace
+        pos += iLenSearch
+    }
+    
+    string result = stringOf s
+    delete s
+    return result
+}
+
+
+//***********************************************************
+/// @createItemfromTemplate(string src_template, string new_name, string new_desc, Folder f_dest)
+/// @brief Copy the template module, paste it to the destination folder then rename the module
+///
+/// @param[in] src_template:	The source template item
+/// @param[in] new_name:	The new item name 
+/// @param[in] new_desc:	The new item description
+/// @param[in] f_dest:		The new item  destination folder
+///
+//***********************************************************
+void createItemfromTemplate(Item i_ref, string new_name, string new_desc, Folder f_dest)
+{ 
+	Folder f_ref
+	string errmsg
+	string template_name
+	string full_template_name
+	string f_dest_name
+	const string ROOT = "/"
+	
+	// Get the current configuration
+
+	f_dest_name = fullName(f_dest)
+	if (f_dest_name == ROOT) f_dest_name = ""
+	template_name = name(i_ref)
+	full_template_name = fullName(i_ref)
+	f_ref = getParentFolder(i_ref)
+
+	// Copy Paste from template in current configuration
+	clipCopy(i_ref)
+
+	errmsg = clipPaste(f_ref)
+	if(!null errmsg) {
+		errorDisplayExit ((name(i_ref))"\nError message: "errmsg,false);
+	}
+
+	errmsg = clipClear(true)
+	if(!null errmsg){
+		errorDisplayExit ((name(i_ref))"\nError message: "errmsg,false);
+	}
+
+	//Find the new created item in  destination folder(must be "Copy of" template_name))
+	Item new_item
+	Item i
+	string copy_name
+	Regexp I_NAME = regexp2 "(^.*)" template_name "$"
+	//
+	for i in f_ref do {
+		copy_name = fullName(i)
+		if (I_NAME copy_name){
+	   		if (i != i_ref){
+				new_item = i
+			}
+	  	}
+	}
+	//Move new item to destination folder
+	errmsg = move(new_item, f_dest)
+	if(!null errmsg){
+		delete(new_item)
+		purge (new_item)
+		errorDisplayExit ((name(i_ref))"\nError message: "errmsg,false);
+	}
+
+	//Rename the new created item from  "Copy of name(i)"  to "new_name"
+	errmsg = rename (new_item, new_name, new_desc)
+	if(!null errmsg){
+		delete(new_item)
+		purge (new_item)
+		errorDisplayExit ((name(i_ref))"\nError message: "errmsg,false);
+	}
+	//Make the new item visible			    
+}//createItemfromTemplate
+
+/******************************************************************************
+	isTemplateModule
+******************************************************************************/
+bool isTemplateModule(Item i)
+{
+	string strItem = name (i);
+	string strShouldBeXX = strItem[2:3];
+	int lenghtStr = length (strItem);
+	strShouldBe_tpl = strItem[lenghtStr-4:lenghtStr-1]
+	if( (strShouldBeXX != "XX" && strShouldBeXX != "xx") || strShouldBe_tpl != "_tpl"){
+		return (false);
+	}
+	return (true);
+}
 
 void main()
 {
 
 	Date dateAndTime = dateAndTime(today());
 	print "Running Script - "dateAndTime"\n";
-	tplProject= miniExplorer(null, current,  MINI_EXP_FORMAL_MODS)
-	print tplProject
-	Project pTemplate = project (tplProject);
+	
+	/*Select Project to Copy*/
+	tplProject = miniExplorer(null, current, MINI_EXP_PROJECT ,"Select a project :")
+	Project pTemplate = project (tplProject)
+	Item itemPrjTemplate = item (tplProject)
 	if(null pTemplate){
-		errorDisplayExit("No project selected.",true)
+		errorDisplayExit("Error creating project. (project)",true)
 	}
-	Item items
-	for items in pTemplate do{
-		if(type (items) == "Formal"){
-			//copy all formal modules
-			print fullName(items)"\n"
-		}
+	if(null itemPrjTemplate){
+		errorDisplayExit("Error creating project. (item)",true)
 	}
 
+	/*Select Destination of new Project*/
+	dir = miniExplorer(null, current,  MINI_EXP_FOLDERS, "Select a destination folder for project creation :")
+	Folder folderProjectDir = folder (dir)
+	if(null folderProjectDir){
+		errorDisplayExit("Error in selected folder.",true)
+	}
+
+	/*Copy the new project into the choosen destination*/
+	string renamedProject = (name(itemPrjTemplate))"_TestsJGOBIS2"
+	//createItemfromTemplate(itemPrjTemplate,renamedProject ,  description(itemPrjTemplate), folderProjectDir)
+	Project newProject = project(dir"/"(renamedProject))
+	if(null newProject){
+		errorDisplayExit("Error while reading new project.",true)
+	}
+	print "-> "name(itemPrjTemplate) " has been copied into "dir"\n"
+
+	/*Copy all modules of new project*/
+	Item itemProject
+	for itemProject in newProject do{
+		if(type (itemProject) == "Formal" && isTemplateModule(itemProject)){ //only instantiate formal motule template
+			/*Delete DVS_tpl Prefix*/
+			renamedItem = (name(itemProject))[0:3] //get "10xx" from "10xx_example_DVS_tpl"
+			renamedItem = (renamedItem[0:1])"01"(((name(itemProject))[4:])) //obtains "1001_example_DVS_tpl" then replace DVS_tpl into "Main"
+			//print "\ncopying  "name(itemProject)"  into  "replaceString(renamedItem,"DVS_tpl","Main")
+			createItemfromTemplate(itemProject, replaceString(renamedItem,"DVS_tpl","Main"), description(itemProject), getParentFolder(itemProject))
+		}
+	}
+	print "-> All templates modules has been instantiated\n"
+	refreshDBExplorer();    
 }
 
 logStart("DVS - Instances From Project Template __tests");
