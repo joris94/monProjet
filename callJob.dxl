@@ -1,0 +1,21 @@
+// 
+/* 
+Author    : DTSL.
+Version   : 1.0
+*/
+#include <D:\users\log\logInclude.dxl>
+logStart("test calling executable")
+string jarClient = "D:\\Users\\jgonza11\\jenkins-cli.jar"
+string cmdLine =  "java -jar "jarClient" -s http://bie2-sv00031.vnet.valeo.com/ build DOORS/DOORS_LINKSETS -p EMAIL=users_email -p MLINK=module_link -f -v"
+print cmdLine
+if(canOpenFile(jarClient,false))
+{
+	system (cmdLine)
+}
+else
+{
+	result = "Invalid Path"
+	infoBox ("Invalid path")
+}
+
+logEnd()
