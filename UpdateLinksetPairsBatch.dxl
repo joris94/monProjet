@@ -1,0 +1,260 @@
+#include <logInclude.dxl>
+
+//! GLOBALS
+pragma      encoding, "UTF-8";
+Skip        lnkModName = create;
+Skip        lnkModTgt = create;
+int         lengthKey = 0;
+string      folderOfDVSTemplates = "/p-DE-BIE2-TRAIN19" //should be changed for production database
+
+/******************************************************************************
+    isTemplateModule
+******************************************************************************/
+bool isTemplateModule(Item i)
+{
+    string strItem = name (i);
+    string strShouldBeXX = strItem[2:3];
+    int lenghtStr = length (strItem);
+    strShouldBe_tpl = strItem[lenghtStr-4:lenghtStr-1]
+    if( (strShouldBeXX != "XX" && strShouldBeXX != "xx") || strShouldBe_tpl != "_tpl"){
+        return (false);
+    }
+    return (true);
+}
+/******************************************************************************
+    itemMatchesMask
+******************************************************************************/
+bool itemMatchesMask(Item itm)
+{
+    if (type(itm) == "Formal" && isTemplateModule(itm))
+    {
+        return(true)
+    }  
+    return(false)
+}
+
+
+
+
+/******************************************************************************
+    errorDisplayExit
+******************************************************************************/
+void errorDisplayExit(string msg, bool showMsg)
+{
+    //if (showMsg) ack(msg);
+    print(msg);
+    logEnd();
+    halt();
+}
+
+
+/******************************************************************************
+    scanLinkSetPairingOfFolder
+    Scan the folder of the module (global variable: itemIsTheTplate) to find
+    linkset Paring with this module as source
+******************************************************************************/
+void scanLinkSetPairingOfFolder(Folder f, Item i) 
+{
+    LinkModuleDescriptor lmd
+    int offset, length
+    if (null f) return
+    for lmd in f do
+    {
+        if(findPlainText (getSourceName(lmd), name(i), offset, length, true)){
+            //print "\nAdd:\n\t"(getSourceName(lmd))"\n\t\t"getName(lmd)"\n\t\t\t"getTargetName(lmd)
+            put(lnkModName, lengthKey,getName(lmd))
+            put(lnkModTgt, lengthKey,getTargetName(lmd))
+            lengthKey++
+        }
+    }
+    Item itm
+    for itm in f do //analyze subfolders
+    {
+        if (null itm) continue
+        if (isDeleted(itm)) continue
+       
+        if ((type (itm) == "Project") || (type (itm) == "Folder"))
+        {
+            scanLinkSetPairingOfFolder(folder(itm),i)      
+        }
+    }
+}
+
+
+/******************************************************************************
+    getTemplateOfModuleFromDVS
+    Scan the dvs folder that contains templates and find the corresponding
+    template of the input module
+******************************************************************************/
+string getTemplateOfModuleFromDVS(Item itmWork, Module m) {
+    if (type(itmWork) == "Project") {
+        Item itmHelp;
+        for itmHelp in folder(itmWork) do {
+            str = getTemplateOfModuleFromDVS(itmHelp,m);
+            if(!null str) return str
+        }
+    }
+    if (type(itmWork) == "Folder") {
+        Item itmHelp;
+        for itmHelp in folder(itmWork) do {
+            str = getTemplateOfModuleFromDVS(itmHelp,m);
+            if(!null str) return str
+        }
+    }
+    if (type(itmWork) == "Formal") {
+        //print "found "name itmWork"\n"
+        if(isTemplateModule(itmWork)){
+            tplateCat = (name(itmWork))[0:1];
+            tplateName = (name(itmWork))[4:(length(name(itmWork)))-4]
+            rexep = tplateCat"[0-9][0-9]"tplateName
+            Regexp I_NAME = regexp2 (rexep)
+            if(I_NAME name(m)){
+                //print "\n "name(itmWork)" is template of " name(inputModule)"\n"
+                return fullName (itmWork)
+            }
+        }
+    }
+    return
+}
+
+/******************************************************************************
+    getTemplateOfModule
+    Scan the folder of the input model to find template
+******************************************************************************/
+string getTemplateOfModule(Folder f, Module m)
+{
+    Item itemInFolder
+    for itemInFolder in f do
+    {
+        if (type(itemInFolder) == "Formal") {
+            if(isTemplateModule(itemInFolder)){
+                tplateCat = (name(itemInFolder))[0:1];
+                tplateName = (name(itemInFolder))[4:(length(name(itemInFolder)))-8]
+                rexep = tplateCat"[0-9][0-9]"tplateName
+                Regexp I_NAME = regexp2 (rexep)
+                if(I_NAME name(m)){
+                    //print "\n "name(itemInFolder)" is template of " name(inputModule)"\n"
+                    return fullName (itemInFolder)
+                }
+            }
+        }
+    }
+    return 
+}
+
+
+
+/******************************************************************************
+    urlInfo
+    Analyze the URL
+******************************************************************************/
+
+
+void generateLinksetPairs(Module inputModule)
+{
+
+
+    Item iModule = item(fullName(inputModule))
+    //print "\n"getModuleNameFromURL(moduleNameFromURL)"\n"
+    if (null inputModule){
+        errorDisplayExit ("The URL shall be linked to a module",true);
+    }
+    if( isTemplateModule(iModule)){
+        errorDisplayExit ("This script shall not be executed on a template module",true);
+    }
+    Date dateAndTime = dateAndTime(today());
+    print "Running Script - "dateAndTime"\n";
+
+
+    /////////////////////////////////////////////////////////////
+    ///////////////////////Search Template///////////////////////
+    /////////////////////////////////////////////////////////////
+    Folder currentFolder = getParentFolder(inputModule)
+    string templateName = getTemplateOfModule(currentFolder,inputModule);   //find template in current folder   
+    if(null templateName){//template not found in the current folder -> search in DVS template folders
+        errorDisplayExit( "Template not found in current folder...\n",false);
+    }
+    print "---> Template of \""name(inputModule) "\" is \""templateName"\".\n"
+    Module moduleTplate = read(templateName,false)
+
+    /////////////////////////////////////////////////////////////
+    ///////////////////Compute Linkset Pairing///////////////////
+    /////////////////////////////////////////////////////////////
+    scanLinkSetPairingOfFolder(getParentFolder(item(templateName)), item(templateName)); //create two skip list "lnkModName" and lnkModTgt"
+    if(lengthKey == 0){
+        errorDisplayExit("No linkset pairing to perform according to the template.",false);
+    }
+    string target,expr, prefixTget, targetName, dirTget, nameLnk
+    Regexp EXPR_reg
+    Folder fTarget;
+    Item itemInF;
+    int iKey = 0;
+    for (iKey = 0; iKey < lengthKey ; iKey++)
+    {
+        find(lnkModTgt,iKey,target);
+        find(lnkModName,iKey,nameLnk);
+        expr = "[0-9][0-9]xx_.*_tpl"
+        EXPR_reg = regexp2 (expr)
+        if(!EXPR_reg target){//should not happen...
+            errorDisplayExit("Error target of template.",false)
+        }
+        targetName = target[match 0] 
+        prefixTget = targetName[0:1]
+        int offset, length
+        findPlainText(target, targetName, offset, length, true)
+        dirTget = target[0:offset-1]
+
+        //Now find all target in fTarget that begin with prefixTget without XX
+        fTarget = folder(dirTget)
+        for itemInF in fTarget do
+        {
+            if (type itemInF == "Formal" && !isTemplateModule(itemInF) && (name(itemInF))[0:1] == prefixTget){
+                ///////////////////CREATE LINKSET PAIRING///////////////////
+                msg = addLinkModuleDescriptor(currentFolder, fullName(inputModule), fullName(itemInF), false, true, nameLnk, "")
+                if(!null msg){
+                    print "\nProblem while creating link : \n"name(inputModule)" ->  " nameLnk " -> "fullName(itemInF)"\nERROR: "msg"\n"
+                }
+                else
+                {
+                    print "\nLinking : "name(inputModule)" ->  " nameLnk " -> "fullName(itemInF)" \n"
+                }
+            }
+        }
+    }
+}
+
+logStart("DVS - Update Linkset Pairs");
+//main(JENKINS_LINK_TO_MODULE_PLEASE);//argument should be a URL from a module!!
+//logEnd();
+/******************************************************************************
+    urlInfo
+    Analyze the URL
+******************************************************************************/
+ModuleVersion getModuleNameFromURL(string url)
+// DESCRIPTION: Returns a string describing the target of the specified URL string.
+{
+    string result = null
+    ModuleVersion mv
+    int objectAbsno 
+    Item i
+    string dbHost = null 
+    int dbPort = null 
+    string dbName = null 
+    string dbID  = null 
+    result = decodeURL(url, dbHost, dbPort, dbName, dbID, i, mv, objectAbsno)
+    if (!null result)
+    {
+        errorDisplayExit("An error occured with URL input : "result"\n",false)
+    }
+    return (mv)
+}
+
+//print getModuleNameFromURL("doors://doorscda-pp:36677/?version=2&prodID=0&view=00000006&urn=urn:telelogic:fc0791cf-f0fb-11e5-88f8-93d8defe90ca:1-43463251374b73b7-O-10-00092004")
+
+ModuleVersion moduleFromURL = getModuleNameFromURL("doors://doorscda-pp:36677/?version=2&prodID=0&view=00000006&urn=urn:telelogic:fc0791cf-f0fb-11e5-88f8-93d8defe90ca:1-43463251374b73b7-O-10-00092004"); 
+Module m = load(moduleFromURL, false)
+if(null m){
+    errorDisplayExit("Error, The URL does not link to a module.",false)
+}
+generateLinksetPairs(m); //3701_MdRs_Main
+logEnd();
