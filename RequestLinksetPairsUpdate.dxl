@@ -3,9 +3,11 @@
 Author    : DTSL.
 Version   : 1.0
 */
+
 #include <D:\users\log\logInclude.dxl>
 logStart("Request Linkset Pairs Update")
-users_email = "YOUR_EMAIL"
+User u = find()
+string users_email = u.(UserElement_ email)
 Module m = current
 if(null m){
 	print "Script shall be launched in module context.\n"
