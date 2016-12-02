@@ -360,18 +360,28 @@ string miniExplorer()
 }           
 
 logStart("Purge Selected Item")
-Item i = item(miniExplorer (null,current, MINI_EXP_SHOW_DELETED))
-if(!null i){
-    string named = name i
-    errMsg = purge(i)
-    if(null errMsg)
-    {
-        print "purge OK - "named
+Folder f = current
+Item i = item (fullName(f))
+
+while (!null i){
+    i = item(miniExplorer (null,f, MINI_EXP_SHOW_DELETED))
+    if(!null i){
+        f = getParentFolder(i)
+        string named = name i
+        errMsg = purge(i)
+        if(null errMsg)
+        {
+            print "purge OK - "named"\n"
+        }
+        else
+        {
+            print "FAILED : "errMsg"\n"
+        }
+        refreshDBExplorer(); 
+        i = item (fullName(f)) 
+    }else{
+        logEnd();
+        halt();
     }
-    else
-    {
-        print "FAILED : "errMsg
-    }
-    refreshDBExplorer(); 
 }
 logEnd()
