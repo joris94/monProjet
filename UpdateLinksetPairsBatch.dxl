@@ -223,38 +223,30 @@ void generateLinksetPairs(Module inputModule)
     }
 }
 
-logStart("DVS - Update Linkset Pairs");
-//main(JENKINS_LINK_TO_MODULE_PLEASE);//argument should be a URL from a module!!
-//logEnd();
-/******************************************************************************
-    urlInfo
-    Analyze the URL
-******************************************************************************/
-ModuleVersion getModuleNameFromURL(string url)
-// DESCRIPTION: Returns a string describing the target of the specified URL string.
+
+
+void main(string url)
 {
     string result = null
-    ModuleVersion mv
+    ModuleVersion moduleFromURL
     int objectAbsno 
     Item i
     string dbHost = null 
     int dbPort = null 
     string dbName = null 
     string dbID  = null 
-    result = decodeURL(url, dbHost, dbPort, dbName, dbID, i, mv, objectAbsno)
+    result = decodeURL(url, dbHost, dbPort, dbName, dbID, i, moduleFromURL, objectAbsno)
     if (!null result)
     {
         errorDisplayExit("An error occured with URL input : "result"\n",false)
+    } 
+    Module m = load(moduleFromURL, false)
+    if(null m){
+       errorDisplayExit("Error, The URL does not link to a module.",false)
     }
-    return (mv)
+    generateLinksetPairs(m); //3701_MdRs_Main
 }
 
-//print getModuleNameFromURL("doors://doorscda-pp:36677/?version=2&prodID=0&view=00000006&urn=urn:telelogic:fc0791cf-f0fb-11e5-88f8-93d8defe90ca:1-43463251374b73b7-O-10-00092004")
-
-ModuleVersion moduleFromURL = getModuleNameFromURL("doors://doorscda-pp:36677/?version=2&prodID=0&view=00000006&urn=urn:telelogic:fc0791cf-f0fb-11e5-88f8-93d8defe90ca:1-43463251374b73b7-O-10-00092004"); 
-Module m = load(moduleFromURL, false)
-if(null m){
-    errorDisplayExit("Error, The URL does not link to a module.",false)
-}
-generateLinksetPairs(m); //3701_MdRs_Main
+logStart("DVS - Update Linkset Pairs (from jenkins job)");
+main("doors://doorscda-pp:36677/?version=2&prodID=0&view=00000006&urn=urn:telelogic:fc0791cf-f0fb-11e5-88f8-93d8defe90ca:1-43463251374b73b7-O-10-00092004")
 logEnd();
