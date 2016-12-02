@@ -5,7 +5,6 @@ pragma		encoding, "UTF-8";
 Skip 		lnkModName = create;
 Skip 		lnkModTgt = create;
 int 		lengthKey = 0;
-string		folderOfDVSTemplates = "/p-DE-BIE2-TRAIN19" //should be changed for production database
 
 // item filters
 const int MINI_EXP_FP                       = 1
@@ -15,7 +14,7 @@ DB     dbMiniExplorer                       = null
 DBE    dbeMiniExplorerTree                  = null
 DBE    dbeMiniExplorerOkButton              = null
 DBE    dbeField                             = null
-
+string DVS_TEMPLATE_PROJECT 				= "/Project_Template_DVS_PLUS_CDA_PMT"
 int    miniExplorerItemMask                 = MINI_EXP_FP
 string miniExplorerSelectedItem             = ""
 /******************************************************************************
@@ -493,7 +492,7 @@ void main()
 	print "Running Script - "dateAndTime"\n";
 	
 	/*Select Project to Copy*/
-	tplProject = miniExplorer(null,  "STEP 1", "Select a project : ",current, MINI_EXP_PROJECT)
+	tplProject = miniExplorer(null,  "STEP 1", "Select a project : ",folder(DVS_TEMPLATE_PROJECT), MINI_EXP_PROJECT)
 	Project pTemplate = project (tplProject)
 	Item itemPrjTemplate = item (tplProject)
     toCopyItem = itemPrjTemplate;
