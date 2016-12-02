@@ -434,7 +434,7 @@ string getTemplateOfModule(Folder f, Module m)
 			}
 		}
 	}
-	return null
+	return 
 }
 
 /******************************************************************************
@@ -581,6 +581,6 @@ void main(string url)
 
 logStart("DVS - Update Linkset Pairs");
 /*ONLY AS EXAMPLE*/string argument = getURL(current Object)
-/*ONLY AS EXAMPLE*/print argument"\n"
+/*ONLY AS EXAMPLE*///print argument"\n"
 main(/*ONLY AS EXAMPLE*/argument);//argument should be a URL from a module!!
 logEnd();
