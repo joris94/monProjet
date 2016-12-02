@@ -14,6 +14,8 @@ const int MINI_EXP_FOLDERS             		= 8
 DB     dbMiniExplorer                       = null
 DBE    dbeMiniExplorerTree                  = null
 DBE    dbeMiniExplorerOkButton              = null
+DBE    dbeField                             = null
+
 int    miniExplorerItemMask                 = MINI_EXP_FP
 string miniExplorerSelectedItem             = ""
 /******************************************************************************
@@ -250,7 +252,7 @@ void fnChangeToStartFolder(Folder fStart)
 
 	Returns fullname of selected item or an empty string.
 ******************************************************************************/
-string miniExplorer(DB     dbParent, Folder fStart,  int    itemMask, string title)
+string miniExplorer(DB  dbParent, string title, string message,Folder fStart,  int    itemMask)
 {
 	string  pName = ""
     Project pRoot = null
@@ -259,15 +261,15 @@ string miniExplorer(DB     dbParent, Folder fStart,  int    itemMask, string tit
         
     if (null dbParent)
     {
-	    dbMiniExplorer = create("Browser")
+	    dbMiniExplorer = create(title)
     }
     else
     {
-    	dbMiniExplorer = create(dbParent, "smart Mini Explorer")
+    	dbMiniExplorer = create(dbParent, title)
 	}
 
 	
-    label(dbMiniExplorer, title)
+    label(dbMiniExplorer, message)
 
     dbeMiniExplorerTree = treeView(dbMiniExplorer, treeViewOptionSorted, 400, 15)
 
@@ -453,6 +455,37 @@ bool isTemplateModule(Item i)
 	return (true);
 }
 
+
+Item toCopyItem;
+Folder folderProjectDir;
+
+void run_Copy_fct(DB box) {
+    /*Copy the new project into the choosen destination*/
+    string renamedProject = get(dbeField)
+    createItemfromTemplate(toCopyItem, renamedProject, description(toCopyItem), folderProjectDir)
+
+    Item itemNewPrj = item((fullName(folderProjectDir))"/"(renamedProject))
+    Project newProject = project(itemNewPrj)
+    if(null newProject){
+        errorDisplayExit("Error while accessing new project.",true)
+    }
+    print "-> Project copied into "(name(folderProjectDir))"\n"
+
+    /*Copy all modules of new project*/
+    Item itemProject
+    for itemProject in newProject do{
+        if(type (itemProject) == "Formal" && isTemplateModule(itemProject)){ //only instantiate formal motule template
+            /*Delete DVS_tpl Prefix*/
+            renamedItem = (name(itemProject))[0:3] //get "10xx" from "10xx_example_DVS_tpl"
+            renamedItem = (renamedItem[0:1])"01"(((name(itemProject))[4:])) //obtains "1001_example_DVS_tpl" then replace DVS_tpl into "Main"
+            //print "\ncopying  "name(itemProject)"  into  "replaceString(renamedItem,"DVS_tpl","Main")
+            createItemfromTemplate(itemProject, replaceString(renamedItem,"DVS_tpl","Main"), description(itemProject), getParentFolder(itemProject))
+        }
+    }
+    print "-> All templates modules has been instantiated\n"
+    refreshDBExplorer();  
+}
+
 void main()
 {
 
@@ -460,9 +493,10 @@ void main()
 	print "Running Script - "dateAndTime"\n";
 	
 	/*Select Project to Copy*/
-	tplProject = miniExplorer(null, current, MINI_EXP_PROJECT ,"Select a project :")
+	tplProject = miniExplorer(null,  "STEP 1", "Select a project : ",current, MINI_EXP_PROJECT)
 	Project pTemplate = project (tplProject)
 	Item itemPrjTemplate = item (tplProject)
+    toCopyItem = itemPrjTemplate;
 	if(null pTemplate){
 		errorDisplayExit("Error creating project. (project)",true)
 	}
@@ -471,36 +505,22 @@ void main()
 	}
 
 	/*Select Destination of new Project*/
-	dir = miniExplorer(null, current,  MINI_EXP_FOLDERS, "Select a destination folder for project creation :")
-	Folder folderProjectDir = folder (dir)
+	copyProjectIn = miniExplorer(null, "STEP 2", "Select a destination folder for project creation : ",current,  MINI_EXP_FOLDERS)
+	folderProjectDir = folder (copyProjectIn)
 	if(null folderProjectDir){
 		errorDisplayExit("Error in selected folder.",true)
 	}
 
-	/*Copy the new project into the choosen destination*/
-	string renamedProject = (name(itemPrjTemplate))"_TestsJGOBIS2"
-	//createItemfromTemplate(itemPrjTemplate,renamedProject ,  description(itemPrjTemplate), folderProjectDir)
-	Project newProject = project(dir"/"(renamedProject))
-	if(null newProject){
-		errorDisplayExit("Error while reading new project.",true)
-	}
-	print "-> "name(itemPrjTemplate) " has been copied into "dir"\n"
+    DB db2 = create("STEP 3 : Rename", styleCentered);
+    label (db2, "New project name :");
+    dbeField = field(db2,null,"", 50, false);
+    ok(db2, "Run", run_Copy_fct);
+    realize db2;
+    show db2;
 
-	/*Copy all modules of new project*/
-	Item itemProject
-	for itemProject in newProject do{
-		if(type (itemProject) == "Formal" && isTemplateModule(itemProject)){ //only instantiate formal motule template
-			/*Delete DVS_tpl Prefix*/
-			renamedItem = (name(itemProject))[0:3] //get "10xx" from "10xx_example_DVS_tpl"
-			renamedItem = (renamedItem[0:1])"01"(((name(itemProject))[4:])) //obtains "1001_example_DVS_tpl" then replace DVS_tpl into "Main"
-			//print "\ncopying  "name(itemProject)"  into  "replaceString(renamedItem,"DVS_tpl","Main")
-			createItemfromTemplate(itemProject, replaceString(renamedItem,"DVS_tpl","Main"), description(itemProject), getParentFolder(itemProject))
-		}
-	}
-	print "-> All templates modules has been instantiated\n"
-	refreshDBExplorer();    
+  
 }
 
-logStart("DVS - Instances From Project Template __tests");
+logStart("DVS - Instances From Project Template");
 main();
 logEnd();
