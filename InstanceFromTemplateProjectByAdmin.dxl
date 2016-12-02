@@ -460,8 +460,26 @@ Folder folderProjectDir;
 
 void run_Copy_fct(DB box) {
     /*Copy the new project into the choosen destination*/
+	progressValue = 0;
+	Project projectToCopy = project (fullName(toCopyItem))
+    if(null projectToCopy){
+    	errorDisplayExit("NO project", true)
+    }
+    int countMax = 1 //start to 1 because 
+
+    Item itemCount
+    for itemCount in projectToCopy do{//count number of item that will be copied
+        if(type (itemCount) == "Formal" && isTemplateModule(itemCount)){ //only instantiate formal motule template
+			countMax++
+		}
+    }
+    progressStart(box, "Experiment", "Something",countMax)
+	progressMessage "Copying Project...(can freeze)"
     string renamedProject = get(dbeField)
+    progressStep ++progressValue
     createItemfromTemplate(toCopyItem, renamedProject, description(toCopyItem), folderProjectDir)
+	
+ 
 
     Item itemNewPrj = item((fullName(folderProjectDir))"/"(renamedProject))
     Project newProject = project(itemNewPrj)
@@ -469,7 +487,6 @@ void run_Copy_fct(DB box) {
         errorDisplayExit("Error while accessing new project.",true)
     }
     print "-> Project copied into "(name(folderProjectDir))"\n"
-
     /*Copy all modules of new project*/
     Item itemProject
     for itemProject in newProject do{
@@ -479,8 +496,17 @@ void run_Copy_fct(DB box) {
             renamedItem = (renamedItem[0:1])"01"(((name(itemProject))[4:])) //obtains "1001_example_DVS_tpl" then replace DVS_tpl into "Main"
             //print "\ncopying  "name(itemProject)"  into  "replaceString(renamedItem,"DVS_tpl","Main")
             createItemfromTemplate(itemProject, replaceString(renamedItem,"DVS_tpl","Main"), description(itemProject), getParentFolder(itemProject))
+			progressStep ++progressValue
+			progressMessage ("Copying Formal Module...(can freeze) (" progressValue " /" countMax")")
+			if (progressCancelled) {
+				if (confirm("Exit ?")) {
+					progressStop
+					halt()
+				}
+			}
         }
     }
+    progressStop
     print "-> All templates modules has been instantiated\n"
     refreshDBExplorer();  
 }
