@@ -3,41 +3,16 @@
 Author    : DTSL.
 Version   : 1.0
 */
+//#include <D:\users\log\logInclude.dxl>
+
 
 #include <D:\users\log\logInclude.dxl>
+#include <D:\Users\jgonza11\CoreLinksetPairsUpdate.dxl>
+
 logStart("Request Linkset Pairs Update")
-User u = find()
-string users_email = u.(UserElement_ email)
 Module m = current
 if(null m){
 	print "Script shall be launched in module context.\n"
-	logEnd()
 	halt()
 }
-module_link = getURL(m)
-
-string jarClient = "D:\\Users\\jgonza11\\jenkins-cli.jar"
-string cmdLine =  "java -jar "jarClient" -s http://bie2-sv00031.vnet.valeo.com/ build DOORS/DOORS_LINKSETS -p EMAIL="users_email" -p MLINK=\""module_link"\" -f -v"
-print cmdLine
-if(canOpenFile(jarClient,false))
-{
-	int timeOut = 180000 //wait for 3min = 180000ms
-	string msg;
-	int returnCode = win32SystemWait_(cmdLine, msg, 20000)
-	print "\n"
-	if(returnCode == 3){
-		print "TIME-OUT...\n"
-		print "Output (if any): "msg"\n"
-	}else if (returnCode == 1){
-		print "Error while executing the command"
-	}else{
-		print "Output: "msg"\n"
-	}
-}
-else
-{
-	result = "Invalid Path"
-	infoBox ("Invalid path")
-}
-
-logEnd()
+requestUpdate(m)

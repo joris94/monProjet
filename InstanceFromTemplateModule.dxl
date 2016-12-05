@@ -573,7 +573,7 @@ void run_Copy_fct(DB box) {
 	//Ask for update linkset Pairs
 	Module moduleToUpdateLinks = read(fullName(folder(itemDestinationFolder))"/"finalRenaming, false)
 	if(!null moduleToUpdateLinks){
-		requestUpdate(moduleToUpdateLinks);
+		requestUpdate(moduleToUpdateLinks); 
 	}
 }
 
