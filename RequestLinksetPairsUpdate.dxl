@@ -21,7 +21,9 @@ string cmdLine =  "java -jar "jarClient" -s http://bie2-sv00031.vnet.valeo.com/ 
 print cmdLine
 if(canOpenFile(jarClient,false))
 {
-	system (cmdLine)
+	string msg;
+	int returnCode = win32SystemWait_(cmdLine, msg, 180000)//wait for 3min = 180000
+	print "\nReturn Code = "returnCode"\nOutput: " msg "\n"
 }
 else
 {
