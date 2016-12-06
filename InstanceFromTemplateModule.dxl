@@ -660,15 +660,16 @@ void runGUI ()
 	itemRefTemplate = item(formalModuleTemplate );
 	
 	////////STEP 2 --- USER SELECTION - FOLDER DESTINATION////////
-	string folderToCopyModule;
+	/*string folderToCopyModule = "";
 	folderToCopyModule = getUserSelection("STEP 2 : Select Target Folder", false);
 	if(null folderToCopyModule){
 		exitWithoutError();
-	}
-	itemDestinationFolder = item(folderToCopyModule);       
+	}*/
+	Folder fDest = getParentFolder(itemRefTemplate)
+	itemDestinationFolder = item(fullName(fDest));       
 
 	////////STEP 3 --- RENAME////////
-	DB db2 = create("STEP 3 : Rename", styleCentered);
+	DB db2 = create("STEP 2 : Rename", styleCentered);
 	label (db2, "New module name :");
 
 	if(isTemplateModule(itemRefTemplate))
