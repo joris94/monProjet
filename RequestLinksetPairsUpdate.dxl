@@ -7,7 +7,7 @@ Version   : 1.0
 
 
 #include <D:\users\log\logInclude.dxl>
-#include <CoreLinksetPairsUpdate.dxl>
+#include <CoreLinksetPairsUpdate.inc>
 
 logStart("Request Linkset Pairs Update")
 Module m = current

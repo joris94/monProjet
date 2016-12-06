@@ -1,5 +1,5 @@
 #include <D:\users\log\logInclude.dxl>
-#include <CoreLinksetPairsUpdate.dxl>
+#include <CoreLinksetPairsUpdate.inc>
 
 //! GLOBALS
 pragma		encoding, "UTF-8";
