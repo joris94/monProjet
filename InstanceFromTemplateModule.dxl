@@ -248,7 +248,6 @@ bool hasControlRight(Item i){
 
 		if(GROUPMEMBER == "") //if user right are defined throuth GROUP access, we need tofind its user group
 		{
-			print "ONE TIME"
 			Group group
 			for group in groupList do
 			{
