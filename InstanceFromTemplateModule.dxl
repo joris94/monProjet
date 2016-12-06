@@ -274,8 +274,6 @@ bool hasControlRight(Item i){
 			}
 		}
 	}
-
-
 	return false
 }
 
