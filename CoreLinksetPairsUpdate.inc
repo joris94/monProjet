@@ -14,7 +14,7 @@ void requestUpdate(Module m){
 		deleteFile (fileToRead)
 		//the command line call a Jenkins job - This Jenkins job call a batch which call a DXL script with admin right - As the called script (UpdateLinksetPairsBatch) create a file  we read it after the command
 		int returnCode = win32SystemWait_(cmdLine, msg, 180000)
-		Stream msgFromUpdateLinksetPairsBatch = readFile fileToRead
+		string msgFromUpdateLinksetPairsBatch = readFile fileToRead
 
 		print "\n"
 		if(returnCode == 3){
@@ -27,6 +27,8 @@ void requestUpdate(Module m){
 			print "Output: "msg"\n"
 			print msgFromUpdateLinksetPairsBatch
 		}
+		//deleteFile (fileToRead)
+
 	}
 	else
 	{
