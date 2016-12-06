@@ -12,7 +12,7 @@ void requestUpdate(Module m){
 		int timeOut = 180000 //wait for 3min = 180000ms
 		string msg = ""
 		deleteFile (fileToRead)
-		//the command line call a Jenkins job - This Jenkins job call a batch which call a DXL script with admin right - As the DXL create a file, then we read it
+		//the command line call a Jenkins job - This Jenkins job call a batch which call a DXL script with admin right - As the called script (UpdateLinksetPairsBatch) create a file  we read it after the command
 		int returnCode = win32SystemWait_(cmdLine, msg, 180000)
 		Stream msgFromUpdateLinksetPairsBatch = readFile fileToRead
 
