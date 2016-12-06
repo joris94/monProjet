@@ -213,7 +213,7 @@ void displayBranch(DBE dbe, string sItemPath)
     }
 }
 
-
+string 		GROUPMEMBER = ""
 /******************************************************************************
 	changeOkButton
 ******************************************************************************/
@@ -241,12 +241,70 @@ void changeOkButton()
 	}
 }
 
+
+bool hasControlRight(Item i){
+	Folder f = getParentFolder(i)
+	if(!null f){
+
+		if(GROUPMEMBER == "") //if user right are defined throuth GROUP access, we need tofind its user group
+		{
+			print "ONE TIME"
+			Group group
+			for group in groupList do
+			{
+				string gName = group.name
+				bool b = member(group, find())
+				if (b)
+				{
+					//print " Is a member of: " gName "\n"
+					GROUPMEMBER = gName
+					break;
+				}
+			}
+		}
+
+		AccessRec ar
+		current = f
+		string user = doorsname
+		for ar in current do {
+			if (control ar) { //control right = A of ReadModifyCreateDeleteAdmin
+				if(name(ar) == user || name(ar) == GROUPMEMBER){ //check both doors username and user group
+					//print "\n"name(ar)" has CONTROL = ADMIN ACCESS"
+					return true
+				}
+			}
+		}
+	}
+
+
+	return false
+}
+
+/******************************************************************************
+	changeCheckbox
+******************************************************************************/
+void changeCheckbox()
+{
+	string sel = getRealPath(dbSep get(dbeMiniExplorerTree))
+	Folder f = getParentFolder(item(sel))
+	if(showModules){
+		if (itemMatchesMaskModule(item(sel)) && hasControlRight(item(sel)))
+		{
+			active(onlyTemplateBox)
+		} else
+		{
+			inactive(onlyTemplateBox)
+		}
+	}
+}
+
 /******************************************************************************
 	doSelect
 ******************************************************************************/
 void doSelect(DBE dbe) 
 {
-	changeOkButton();
+	changeOkButton()
+	changeCheckbox()
 }
 
 
@@ -414,9 +472,9 @@ string miniExplorer(DB  dbParent,
 	ok(dbMiniExplorer, "Cancel", doCancel)
 	
 	if(showModules){
-		onlyTemplateBox = toggle(dbMiniExplorer, "Only select templates modules", true)
+		onlyTemplateBox = toggle(dbMiniExplorer, "Only select templates modules (Admin)", true)
 		set(onlyTemplateBox, checkBoxReact)
-
+		inactive(onlyTemplateBox) //only active it if the parentFolder of selected template module is on CONTROL access right (admin)
 	}
     
 	realize dbMiniExplorer
