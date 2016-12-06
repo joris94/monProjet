@@ -1,4 +1,5 @@
-#include <logInclude.dxl>
+//#include <logInclude.dxl>
+#include <D:\users\log\logInclude.dxl>
 
 //! GLOBALS
 pragma      encoding, "UTF-8";
@@ -6,6 +7,17 @@ Skip        lnkModName = create;
 Skip        lnkModTgt = create;
 int         lengthKey = 0;
 string      folderOfDVSTemplates = "/p-DE-BIE2-TRAIN19" //should be changed for production database
+Stream 		writtingBuf;
+const string fileToWrite = "D:\\Users\\"doorsname"\\tempUpdateLinkset.txt"
+
+/******************************************************************************
+    writeMsg
+******************************************************************************/
+void writeMsg(string txt)
+{
+	print txt
+	writtingBuf << txt
+}
 
 /******************************************************************************
     isTemplateModule
@@ -29,7 +41,7 @@ bool itemMatchesMask(Item itm)
     if (type(itm) == "Formal" && isTemplateModule(itm))
     {
         return(true)
-    }  
+    }
     return(false)
 }
 
@@ -41,8 +53,8 @@ bool itemMatchesMask(Item itm)
 ******************************************************************************/
 void errorDisplayExit(string msg, bool showMsg)
 {
-    //if (showMsg) ack(msg);
-    print(msg);
+    writeMsg(msg);
+    close (writtingBuf)
     logEnd();
     halt();
 }
@@ -61,7 +73,7 @@ void scanLinkSetPairingOfFolder(Folder f, Item i)
     for lmd in f do
     {
         if(findPlainText (getSourceName(lmd), name(i), offset, length, true)){
-            //print "\nAdd:\n\t"(getSourceName(lmd))"\n\t\t"getName(lmd)"\n\t\t\t"getTargetName(lmd)
+            //writeMsg "\nAdd:\n\t"(getSourceName(lmd))"\n\t\t"getName(lmd)"\n\t\t\t"getTargetName(lmd)
             put(lnkModName, lengthKey,getName(lmd))
             put(lnkModTgt, lengthKey,getTargetName(lmd))
             lengthKey++
@@ -102,14 +114,14 @@ string getTemplateOfModuleFromDVS(Item itmWork, Module m) {
         }
     }
     if (type(itmWork) == "Formal") {
-        //print "found "name itmWork"\n"
+        //writeMsg "found "name itmWork"\n"
         if(isTemplateModule(itmWork)){
             tplateCat = (name(itmWork))[0:1];
             tplateName = (name(itmWork))[4:(length(name(itmWork)))-4]
             rexep = tplateCat"[0-9][0-9]"tplateName
             Regexp I_NAME = regexp2 (rexep)
             if(I_NAME name(m)){
-                //print "\n "name(itmWork)" is template of " name(inputModule)"\n"
+                //writeMsg "\n "name(itmWork)" is template of " name(inputModule)"\n"
                 return fullName (itmWork)
             }
         }
@@ -133,7 +145,7 @@ string getTemplateOfModule(Folder f, Module m)
                 rexep = tplateCat"[0-9][0-9]"tplateName
                 Regexp I_NAME = regexp2 (rexep)
                 if(I_NAME name(m)){
-                    //print "\n "name(itemInFolder)" is template of " name(inputModule)"\n"
+                    //writeMsg "\n "name(itemInFolder)" is template of " name(inputModule)"\n"
                     return fullName (itemInFolder)
                 }
             }
@@ -155,7 +167,7 @@ void generateLinksetPairs(Module inputModule)
 
 
     Item iModule = item(fullName(inputModule))
-    //print "\n"getModuleNameFromURL(moduleNameFromURL)"\n"
+    //writeMsg "\n"getModuleNameFromURL(moduleNameFromURL)"\n"
     if (null inputModule){
         errorDisplayExit ("The URL shall be linked to a module",true);
     }
@@ -163,7 +175,7 @@ void generateLinksetPairs(Module inputModule)
         errorDisplayExit ("This script shall not be executed on a template module",true);
     }
     Date dateAndTime = dateAndTime(today());
-    print "Running Script - "dateAndTime"\n";
+    writeMsg "Running Script UpdateLinksetPairsBatch - "dateAndTime"\n";
 
 
     /////////////////////////////////////////////////////////////
@@ -174,7 +186,7 @@ void generateLinksetPairs(Module inputModule)
     if(null templateName){//template not found in the current folder -> search in DVS template folders
         errorDisplayExit( "Template not found in current folder...\n",false);
     }
-    print "---> Template of \""name(inputModule) "\" is \""templateName"\".\n"
+    writeMsg "---> Template of \""name(inputModule) "\" is \""templateName"\".\n"
     Module moduleTplate = read(templateName,false)
 
     /////////////////////////////////////////////////////////////
@@ -212,11 +224,11 @@ void generateLinksetPairs(Module inputModule)
                 ///////////////////CREATE LINKSET PAIRING///////////////////
                 msg = addLinkModuleDescriptor(currentFolder, fullName(inputModule), fullName(itemInF), false, true, nameLnk, "")
                 if(!null msg){
-                    print "\nProblem while creating link : \n"name(inputModule)" ->  " nameLnk " -> "fullName(itemInF)"\nERROR: "msg"\n"
+                    writeMsg "\nProblem while creating link : \n"name(inputModule)" ->  " nameLnk " -> "fullName(itemInF)"\nERROR: "msg"\n"
                 }
                 else
                 {
-                    print "\nLinking : "name(inputModule)" ->  " nameLnk " -> "fullName(itemInF)" \n"
+                    writeMsg "\nLinking : "name(inputModule)" ->  " nameLnk " -> "fullName(itemInF)" \n"
                 }
             }
         }
@@ -244,7 +256,9 @@ void main(string url)
     if(null m){
        errorDisplayExit("Error, The URL does not link to a module.",false)
     }
+    writtingBuf = write(fileToWrite)
     generateLinksetPairs(m); //3701_MdRs_Main
+    close (writtingBuf)
 }
 
 logStart("DVS - Update Linkset Pairs (from jenkins job)");
