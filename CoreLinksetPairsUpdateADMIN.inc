@@ -193,12 +193,11 @@ void runUpdate(string url)
 	if (null inputModule){
 		errorDisplayExit ("This script shall be executed in a module context",true);
 	}
-	print name(inputModule)" TEST TEST\n"
-	/*if( isTemplateMod(item (name(inputModule)))){
+	if( isTemplateMod(item (fullName(inputModule)))){
 		errorDisplayExit ("This script shall not be executed on a template module",true);
-	}*/
-	//Date dateAndTime = dateAndTime(today());
-	//print "Running UPDATE LINKSET PAIRS - "dateAndTime"\n";
+	}
+	Date dateAndTime = dateAndTime(today());
+	print "Running UPDATE LINKSET PAIRS - "dateAndTime"\n";
 
 
 	/////////////////////////////////////////////////////////////

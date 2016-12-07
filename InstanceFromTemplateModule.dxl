@@ -1,6 +1,6 @@
 #include <D:\users\log\logInclude.dxl>
 #include <CoreLinksetPairsUpdateADMIN.inc>
-#include <CoreLinksetPairsUpdate.inc>
+#include <CoreLinksetPairsUpdateJENKINS.inc>
 //! GLOBALS
 pragma		encoding, "UTF-8";
 Item		itemRefTemplate, itemDestinationFolder;

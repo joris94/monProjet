@@ -13,7 +13,7 @@ if(hasPermission(doorsname(),getParentFolder(m),allPermission)){
 	string argument = getURL(m)
 	runUpdate(argument)
 }else{
-	#include <CoreLinksetPairsUpdate.inc>
+	#include <CoreLinksetPairsUpdateJENKINS.inc>
 	logStart("DVS - Update Linkset Pairs (jenkins)");
 	requestUpdate(m)
 }
