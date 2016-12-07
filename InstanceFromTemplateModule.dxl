@@ -181,9 +181,11 @@ void addItem(DBE dbe, Item i)
             else 
             {
 				if(showModules){
-					if (itemMatchesMaskModule(i) &&  hasPermission(doorsname(),getParentProject(i),allPermission))
+					if (itemMatchesMaskModule(i))
 					{
-						insert(dbeMiniExplorerTree, displayPath, getIcon(i), getIcon(i))
+						if(get (onlyTemplateBox) || hasPermission(doorsname(),getParentProject(i),allPermission)){ // !(!a && !b) =a || b
+							insert(dbeMiniExplorerTree, displayPath, getIcon(i), getIcon(i))
+						}
 					}
 				}else{
 					if (itemMatchesMaskFolder(i))
@@ -250,15 +252,25 @@ void changeOkButton()
 void changeCheckbox()
 {
 	string sel = getRealPath(dbSep get(dbeMiniExplorerTree))
-	if(showModules){
-		if (hasPermission(doorsname(),getParentProject(item(sel)),allPermission))
-		{
-			active(onlyTemplateBox)
-		} else
-		{
-			inactive(onlyTemplateBox)
+	Item i = item(sel)
+	Project p = null;
+	if(type(i) == "Project") {
+		p = project (i)
+	}else{
+		p = getParentProject(i)
+	}
+	if(!null p){
+		if(showModules){
+			if (hasPermission(doorsname(),p ,allPermission))
+			{
+				active(onlyTemplateBox)
+			} else
+			{
+				inactive(onlyTemplateBox)
+			}
 		}
 	}
+
 }
 
 
