@@ -708,7 +708,7 @@ void runGUI ()
 {
 	////////STEP 1 --- USER SELECTION - FORMAL MODULE TEMPLATE////////
 	string formalModuleTemplate  = "";
-    formalModuleTemplate   = getUserSelection("STEP 1 : Select a Formal Modules Template", true);
+    formalModuleTemplate   = getUserSelection("STEP 1 : Select a Formal Module Template", true);
 	if(null formalModuleTemplate){
 		exitWithoutError();
 	}
