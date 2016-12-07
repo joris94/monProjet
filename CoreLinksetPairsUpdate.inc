@@ -9,13 +9,10 @@ void requestUpdate(Module m){
 
 	if(canOpenFile(jarClient,false))
 	{
-		int timeOut = 180000 //wait for 3min = 180000ms
 		string msg = ""
-		deleteFile (fileToRead)
 		//the command line call a Jenkins job - This Jenkins job call a batch which call a DXL script with admin right - As the called script (UpdateLinksetPairsBatch) create a file  we read it after the command
-		int returnCode = win32SystemWait_(cmdLine, msg, 180000)
+		int returnCode = win32SystemWait_(cmdLine, msg, -1) //win32SystemWait_(cmdLine, msg, TIME_OUT (in ms))
 		string msgFromUpdateLinksetPairsBatch = readFile fileToRead
-
 		print "\n"
 		if(returnCode == 3){
 			print "TIME-OUT...\n"
@@ -27,13 +24,12 @@ void requestUpdate(Module m){
 			print "Output: "msg"\n"
 			print msgFromUpdateLinksetPairsBatch
 		}
-		//deleteFile (fileToRead)
-
+		deleteFile (fileToRead)
 	}
 	else
 	{
-		result = "Invalid Path"
-		infoBox ("Invalid path")
+		result = "Invalid Path for Jenkins jar file"
+		infoBox ("Invalid Path for Jenkins jar file")
 	}
 	logEnd()
 }

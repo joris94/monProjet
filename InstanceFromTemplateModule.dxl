@@ -1,6 +1,6 @@
 #include <D:\users\log\logInclude.dxl>
+#include <CoreLinksetPairsUpdateADMIN.inc>
 #include <CoreLinksetPairsUpdate.inc>
-
 //! GLOBALS
 pragma		encoding, "UTF-8";
 Item		itemRefTemplate, itemDestinationFolder;
@@ -8,17 +8,18 @@ Item		itemRefTemplate, itemDestinationFolder;
 string		renamedModule;
 DBE			dbeField;
 int 		intPrefix;
+Permission 	allPermission 					= read|modify|create|delete|control //RMCDA
 
 // item filters
 const int MINI_EXP_FP                       = 1
 const int MINI_EXP_FORMAL_MODS              = 4
 bool 	showModules							= null //IF TRUE browser show folder + module, else only folder.
 DBE 	onlyTemplateBox						= null
-DB     dbMiniExplorer                       = null
-DBE    dbeMiniExplorerTree                  = null
-DBE    dbeMiniExplorerOkButton              = null
-int    miniExplorerItemMask                 = MINI_EXP_FP
-string miniExplorerSelectedItem             = ""
+DB     	dbMiniExplorer                      = null
+DBE  	dbeMiniExplorerTree                 = null
+DBE    	dbeMiniExplorerOkButton             = null
+int    	miniExplorerItemMask                = MINI_EXP_FP
+string 	miniExplorerSelectedItem            = ""
 
 //***********************************************************
 /// @errorDisplayExit(string msg)
@@ -180,7 +181,7 @@ void addItem(DBE dbe, Item i)
             else 
             {
 				if(showModules){
-					if (itemMatchesMaskModule(i))
+					if (itemMatchesMaskModule(i) &&  hasPermission(doorsname(),getParentProject(i),allPermission))
 					{
 						insert(dbeMiniExplorerTree, displayPath, getIcon(i), getIcon(i))
 					}
@@ -242,40 +243,6 @@ void changeOkButton()
 }
 
 
-bool hasControlRight(Item i){
-	Folder f = getParentFolder(i)
-	if(!null f){
-
-		if(GROUPMEMBER == "") //if user right are defined throuth GROUP access, we need tofind its user group
-		{
-			Group group
-			for group in groupList do
-			{
-				string gName = group.name
-				bool b = member(group, find())
-				if (b)
-				{
-					//print " Is a member of: " gName "\n"
-					GROUPMEMBER = gName
-					break;
-				}
-			}
-		}
-
-		AccessRec ar
-		current = f
-		string user = doorsname
-		for ar in current do {
-			if (control ar) { //control right = A of ReadModifyCreateDeleteAdmin
-				if(name(ar) == user || name(ar) == GROUPMEMBER){ //check both doors username and user group
-					//print "\n"name(ar)" has CONTROL = ADMIN ACCESS"
-					return true
-				}
-			}
-		}
-	}
-	return false
-}
 
 /******************************************************************************
 	changeCheckbox
@@ -283,9 +250,8 @@ bool hasControlRight(Item i){
 void changeCheckbox()
 {
 	string sel = getRealPath(dbSep get(dbeMiniExplorerTree))
-	Folder f = getParentFolder(item(sel))
 	if(showModules){
-		if (itemMatchesMaskModule(item(sel)) && hasControlRight(item(sel)))
+		if (hasPermission(doorsname(),getParentProject(item(sel)),allPermission))
 		{
 			active(onlyTemplateBox)
 		} else
@@ -294,6 +260,8 @@ void changeCheckbox()
 		}
 	}
 }
+
+
 
 /******************************************************************************
 	doSelect
@@ -381,8 +349,6 @@ void fnChangeToStartFolder(Folder fStart)
 void checkBoxReact(DBE dbe)
 {
     changeOkButton();
-
-
     string sel = getRealPath(dbSep get(dbeMiniExplorerTree))
     Item it = item sel
 	Project p =  getParentProject (it)
@@ -631,7 +597,13 @@ void run_Copy_fct(DB box) {
 
 	setLinkModuleDescriptorsExclusive(folder(itemDestinationFolder),mod,true) //only allow outgoing links (checkbox in module property)
 	if(!null moduleToUpdateLinks){
-		requestUpdate(moduleToUpdateLinks); 
+		Permission allPermission = read|modify|create|delete|control //RMCDA
+		if(hasPermission(doorsname(),getParentFolder(moduleToUpdateLinks),allPermission)){
+			string argument = getURL(moduleToUpdateLinks)
+			runUpdate(argument)
+		}else{
+			requestUpdate(moduleToUpdateLinks)
+		}
 	}
 }
 
