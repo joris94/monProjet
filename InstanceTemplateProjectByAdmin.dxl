@@ -473,7 +473,7 @@ void run_Copy_fct(DB box) {
 	progressValue = 0;
 	Project projectToCopy = project (fullName(toCopyItem))
     if(null projectToCopy){
-    	errorDisplayExit("NO project", true)
+    	errorDisplayExit("NO project", false)
     }
     int countMax = 1 //start to 1 because 
 
