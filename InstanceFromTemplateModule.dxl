@@ -8,8 +8,8 @@
 */
 
 #include <D:\users\log\logInclude.dxl>
-#include <CoreLinksetPairsUpdateADMIN.inc>
-#include <CoreLinksetPairsUpdateJENKINS.inc>
+#include <..\\addins\\Valeo\\admin\\CoreLinksetPairsUpdateADMIN.inc>
+#include <..\\addins\\Valeo\\admin\\CoreLinksetPairsUpdateJENKINS.inc>
 //! GLOBALS
 pragma		encoding, "UTF-8";
 Item		itemRefTemplate, itemDestinationFolder;
