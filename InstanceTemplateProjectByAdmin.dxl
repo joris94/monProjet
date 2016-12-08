@@ -483,7 +483,7 @@ void run_Copy_fct(DB box) {
 			countMax++
 		}
     }
-    progressStart(box, "Experiment", "Something",countMax)
+    progressStart(box, "Copying...", "",countMax)
 	progressMessage "Copying Project...(can freeze)"
     string renamedProject = get(dbeField)
     progressStep ++progressValue
