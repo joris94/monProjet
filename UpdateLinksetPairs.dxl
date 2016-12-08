@@ -1,3 +1,9 @@
+//The script select which updateLinksetPairs script should be launched in function of access right
+/*
+	The script select which updateLinksetPairs script should be launched in function of access right
+	If user has admin right on the parent folder of the input module, the script use CoreLinksetPairsUpdateADMIN.inc, else it uses CoreLinksetPairsUpdateJENKINS.inc
+*/
+
 #include <D:\users\log\logInclude.dxl>
 
 Module m = current

@@ -1,3 +1,9 @@
+//run jenkins job to update linksetPairs of module given as input
+/*
+	run jenkins job to update linksetPairs of module given as input
+	then display output message into dxl console
+*/
+
 const string fileToRead = "D:\\Users\\"doorsname"\\tempUpdateLinkset.txt"
 void requestUpdate(Module m){
 	User u = find()

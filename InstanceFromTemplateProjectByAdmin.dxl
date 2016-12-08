@@ -1,3 +1,13 @@
+//The script lets the user create a project from a project template
+/*
+    Algorithm overview:
+        * the user selects a template project
+        * the user selects a directory folder
+        * the selected project is copied then pasted in the selected folder
+        * the user can rename the project
+        * as the process can take a while, a progress bar is displayed
+*/
+
 #include <D:\users\log\logInclude.dxl>
 
 //! GLOBALS

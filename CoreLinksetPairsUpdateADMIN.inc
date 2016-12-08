@@ -1,3 +1,9 @@
+//Update linksetPairs of module given as input 
+/*
+	Update linksetPairs of module given as input 
+	(work only if user has admin right on parent folder)
+*/
+
 //! GLOBALS
 Skip 		lnkModName = create;
 Skip 		lnkModTgt = create;

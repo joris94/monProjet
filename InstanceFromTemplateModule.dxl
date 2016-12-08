@@ -1,3 +1,12 @@
+//The script lets the user copy paste and rename (with good prefix) a module, then upadete linkset pairs
+/*
+	Algorithm overview:
+		* the user selects a template from a GUI
+		* the selected module is copied then pasted in the same folder
+		* the user can rename the suffix, the prefix is already calculated to be unique
+		* the scripts update linkset pairs of the new module according to the template
+*/
+
 #include <D:\users\log\logInclude.dxl>
 #include <CoreLinksetPairsUpdateADMIN.inc>
 #include <CoreLinksetPairsUpdateJENKINS.inc>
