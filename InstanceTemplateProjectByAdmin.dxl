@@ -9,39 +9,40 @@
 */
 
 #include <D:\users\log\logInclude.dxl>
+/*#include <..\\addins\\Valeo\\admin\\CoreLinksetPairsUpdateADMIN.inc>
+#include <..\\addins\\Valeo\\admin\\CoreLinksetPairsUpdateJENKINS.inc>*/
 
+#include <CoreLinksetPairsUpdateADMIN.inc>
+#include <CoreLinksetPairsUpdateJENKINS.inc>
 //! GLOBALS
-pragma		encoding, "UTF-8";
-Skip 		lnkModName = create;
-Skip 		lnkModTgt = create;
-int 		lengthKey = 0;
+pragma      encoding, "UTF-8";
 
 // item filters
 const int MINI_EXP_FP                       = 1
-const int MINI_EXP_PROJECT	                = 4
-const int MINI_EXP_FOLDERS             		= 8
+const int MINI_EXP_PROJECT                  = 4
+const int MINI_EXP_FOLDERS                  = 8
 DB     dbMiniExplorer                       = null
 DBE    dbeMiniExplorerTree                  = null
 DBE    dbeMiniExplorerOkButton              = null
 DBE    dbeField                             = null
-string DVS_TEMPLATE_PROJECT 				= "/Project_Template_DVS_PLUS_CDA_PMT"
+string DVS_TEMPLATE_PROJECT                 = "/Project_Template_DVS_PLUS_CDA_PMT"
 int    miniExplorerItemMask                 = MINI_EXP_FP
 string miniExplorerSelectedItem             = ""
 /******************************************************************************
-	itemMatchesMask
+    itemMatchesMask
 ******************************************************************************/
 bool itemMatchesMask(Item itm)
 {
-	if ((type(itm) == "Project" && miniExplorerItemMask == MINI_EXP_PROJECT )|| (type(itm) == "Folder" && miniExplorerItemMask == MINI_EXP_FOLDERS ))
-	{
-		return(true)
-	}  
-	return(false)
+    if ((type(itm) == "Project" && miniExplorerItemMask == MINI_EXP_PROJECT )|| (type(itm) == "Folder" && miniExplorerItemMask == MINI_EXP_FOLDERS ))
+    {
+        return(true)
+    }  
+    return(false)
 }
 
 
 /******************************************************************************
-	doOk
+    doOk
 ******************************************************************************/
 void doOk(DB db)
 {
@@ -53,24 +54,24 @@ void doOk(DB db)
 
 
 /******************************************************************************
-	doActivate
+    doActivate
 ******************************************************************************/
 void doActivate(DBE dbe) 
 {
-	string sel = getRealPath(dbSep get(dbeMiniExplorerTree))
-	
-	if (itemMatchesMask(item(sel)))
-	{
-		miniExplorerSelectedItem = sel
-		
-		release(dbMiniExplorer)
-    	hide(dbMiniExplorer)
-	} 
+    string sel = getRealPath(dbSep get(dbeMiniExplorerTree))
+    
+    if (itemMatchesMask(item(sel)))
+    {
+        miniExplorerSelectedItem = sel
+        
+        release(dbMiniExplorer)
+        hide(dbMiniExplorer)
+    } 
 }
 
 
 /******************************************************************************
-	doCancel
+    doCancel
 ******************************************************************************/
 void doCancel(DB db)
 {
@@ -83,15 +84,15 @@ void doCancel(DB db)
 
 
 /******************************************************************************
-	doNothing
+    doNothing
 ******************************************************************************/
 void doNothing(DB db)
 {
-	;
+    ;
 }
 
 /******************************************************************************
-	addItem
+    addItem
 ******************************************************************************/
 void addItem(DBE dbe, Item i)
 {
@@ -120,7 +121,7 @@ void addItem(DBE dbe, Item i)
             {
                 if (itemMatchesMask(i))
                 {
-                	insert(dbeMiniExplorerTree, displayPath, getIcon(i), getIcon(i))
+                    insert(dbeMiniExplorerTree, displayPath, getIcon(i), getIcon(i))
                 }
             }
         }
@@ -129,7 +130,7 @@ void addItem(DBE dbe, Item i)
 
 
 /******************************************************************************
-	displayBranch
+    displayBranch
 ******************************************************************************/
 void displayBranch(DBE dbe, string sItemPath)
 {
@@ -148,25 +149,25 @@ void displayBranch(DBE dbe, string sItemPath)
 
 
 /******************************************************************************
-	doSelect
+    doSelect
 ******************************************************************************/
 void doSelect(DBE dbe) 
 {
-	string sel = getRealPath(dbSep get(dbeMiniExplorerTree))
-	
-	if (itemMatchesMask(item(sel)))
-	{
-		active(dbeMiniExplorerOkButton)
-	}
-	else
-	{
-		inactive(dbeMiniExplorerOkButton)
-	}
+    string sel = getRealPath(dbSep get(dbeMiniExplorerTree))
+    
+    if (itemMatchesMask(item(sel)))
+    {
+        active(dbeMiniExplorerOkButton)
+    }
+    else
+    {
+        inactive(dbeMiniExplorerOkButton)
+    }
 }
 
 
 /******************************************************************************
-	doExpand
+    doExpand
 ******************************************************************************/
 bool doExpand(DBE dbe, string sItem) 
 {
@@ -203,7 +204,7 @@ bool doExpand(DBE dbe, string sItem)
 
 
 /******************************************************************************
-	fnChangeToStartFolder
+    fnChangeToStartFolder
 ******************************************************************************/
 void fnChangeToStartFolder(Folder fStart)
 {
@@ -250,43 +251,43 @@ void fnChangeToStartFolder(Folder fStart)
 
 
 /******************************************************************************
-	miniExplorer
-	Provides a tree view for user to select an item from the database.
-	Parameters:
-		dbParent		Parent dialog box. Returns focus to this dialog
-						on closing.				
-		fStart			Folder to open in the tree when the dialog is first
-		                displayed.	             
-		itemMask		Mask used to filter items that are displayed. 	
+    miniExplorer
+    Provides a tree view for user to select an item from the database.
+    Parameters:
+        dbParent        Parent dialog box. Returns focus to this dialog
+                        on closing.             
+        fStart          Folder to open in the tree when the dialog is first
+                        displayed.               
+        itemMask        Mask used to filter items that are displayed.   
 
-	Returns fullname of selected item or an empty string.
+    Returns fullname of selected item or an empty string.
 ******************************************************************************/
 string miniExplorer(DB  dbParent, string title, string message,Folder fStart,  int    itemMask)
 {
-	string  pName = ""
+    string  pName = ""
     Project pRoot = null
 
-	miniExplorerItemMask   = itemMask 
+    miniExplorerItemMask   = itemMask 
         
     if (null dbParent)
     {
-	    dbMiniExplorer = create(title)
+        dbMiniExplorer = create(title)
     }
     else
     {
-    	dbMiniExplorer = create(dbParent, title)
-	}
+        dbMiniExplorer = create(dbParent, title)
+    }
 
-	
+    
     label(dbMiniExplorer, message)
 
     dbeMiniExplorerTree = treeView(dbMiniExplorer, treeViewOptionSorted, 400, 15)
 
     dbeMiniExplorerOkButton = apply(dbMiniExplorer, "OK", doOk)
 
-	// create our own close and ok buttons
-	close(dbMiniExplorer, false, doNothing)
-	ok(dbMiniExplorer, "Cancel", doCancel)
+    // create our own close and ok buttons
+    close(dbMiniExplorer, false, doNothing)
+    ok(dbMiniExplorer, "Cancel", doCancel)
 
     realize dbMiniExplorer
 
@@ -327,18 +328,18 @@ string miniExplorer(DB  dbParent, string title, string message,Folder fStart,  i
 
 
 /******************************************************************************
-	errorDisplayExit
+    errorDisplayExit
 ******************************************************************************/
 void errorDisplayExit(string msg, bool showMsg)
 {
-	if (showMsg) ack(msg);
-	print(msg);
-	logEnd();
-	halt();
+    if (showMsg) ack(msg);
+    print(msg);
+    logEnd();
+    halt();
 }
 
 /******************************************************************************
-	replaceString
+    replaceString
 ******************************************************************************/
 string replaceString (string sSource, string sSearch, string sReplace) {
     int iLen = length sSource
@@ -381,89 +382,89 @@ string replaceString (string sSource, string sSearch, string sReplace) {
 /// @createItemfromTemplate(string src_template, string new_name, string new_desc, Folder f_dest)
 /// @brief Copy the template module, paste it to the destination folder then rename the module
 ///
-/// @param[in] src_template:	The source template item
-/// @param[in] new_name:	The new item name 
-/// @param[in] new_desc:	The new item description
-/// @param[in] f_dest:		The new item  destination folder
+/// @param[in] src_template:    The source template item
+/// @param[in] new_name:    The new item name 
+/// @param[in] new_desc:    The new item description
+/// @param[in] f_dest:      The new item  destination folder
 ///
 //***********************************************************
 string createItemfromTemplate(Item i_ref, string new_name, string new_desc, Folder f_dest)
 { 
-	Folder f_ref
-	string errmsg = ""
-	string template_name
-	string full_template_name
-	string f_dest_name
-	const string ROOT = "/"
-	
+    Folder f_ref
+    string errmsg = ""
+    string template_name
+    string full_template_name
+    string f_dest_name
+    const string ROOT = "/"
+    
 
-	// Get the current configuration
+    // Get the current configuration
 
-	f_dest_name = fullName(f_dest)
-	if (f_dest_name == ROOT) f_dest_name = ""
-	template_name = name(i_ref)
-	full_template_name = fullName(i_ref)
-	f_ref = getParentFolder(i_ref)
+    f_dest_name = fullName(f_dest)
+    if (f_dest_name == ROOT) f_dest_name = ""
+    template_name = name(i_ref)
+    full_template_name = fullName(i_ref)
+    f_ref = getParentFolder(i_ref)
 
-	// Copy Paste from template in current configuration
-	clipCopy(i_ref)
+    // Copy Paste from template in current configuration
+    clipCopy(i_ref)
 
-	errmsg = clipPaste(f_ref)
-	if(!null errmsg) {
-		return errmsg
-	}
-
-	errmsg = clipClear(true)
-	if(!null errmsg){
-		return errmsg
-	}
-
-	//Find the new created item in  destination folder(must be "Copy of" template_name))
-	Item new_item
-	Item i
-	string copy_name
-	Regexp I_NAME = regexp2 "(^.*)" template_name "$"
-	//
-	for i in f_ref do {
-		copy_name = fullName(i)
-		if (I_NAME copy_name){
-	   		if (i != i_ref){
-				new_item = i
-			}
-	  	}
-	}
-	//Move new item to destination folder
-	errmsg = move(new_item, f_dest)
-	if(!null errmsg){
-		delete(new_item)
-		purge (new_item)
-		return errmsg
-	}
-
-	//Rename the new created item from  "Copy of name(i)"  to "new_name"
-	errmsg = rename (new_item, new_name, new_desc)
-	if(!null errmsg){
-		delete(new_item)
-		purge (new_item)
+    errmsg = clipPaste(f_ref)
+    if(!null errmsg) {
         return errmsg
-		//errorDisplayExit ((name(i_ref))"\nError message: "errmsg,false);
-	}
-	return ""//Make the new item visible			    
+    }
+
+    errmsg = clipClear(true)
+    if(!null errmsg){
+        return errmsg
+    }
+
+    //Find the new created item in  destination folder(must be "Copy of" template_name))
+    Item new_item
+    Item i
+    string copy_name
+    Regexp I_NAME = regexp2 "(^.*)" template_name "$"
+    //
+    for i in f_ref do {
+        copy_name = fullName(i)
+        if (I_NAME copy_name){
+            if (i != i_ref){
+                new_item = i
+            }
+        }
+    }
+    //Move new item to destination folder
+    errmsg = move(new_item, f_dest)
+    if(!null errmsg){
+        delete(new_item)
+        purge (new_item)
+        return errmsg
+    }
+
+    //Rename the new created item from  "Copy of name(i)"  to "new_name"
+    errmsg = rename (new_item, new_name, new_desc)
+    if(!null errmsg){
+        delete(new_item)
+        purge (new_item)
+        return errmsg
+        //errorDisplayExit ((name(i_ref))"\nError message: "errmsg,false);
+    }
+    return ""//Make the new item visible                
 }//createItemfromTemplate
 
 /******************************************************************************
-	isTemplateModule
+    isTemplateModule
 ******************************************************************************/
 bool isTemplateModule(Item i)
 {
-	string strItem = name (i);
-	string strShouldBeXX = strItem[2:3];
-	int lenghtStr = length (strItem);
-	strShouldBe_tpl = strItem[lenghtStr-4:lenghtStr-1]
-	if( (strShouldBeXX != "XX" && strShouldBeXX != "xx") || strShouldBe_tpl != "_tpl"){
-		return (false);
-	}
-	return (true);
+    string strItem = name (i);
+    string strShouldBeXX = strItem[2:3];
+    int lenghtStr = length (strItem);
+    strShouldBe_tpl = strItem[lenghtStr-4:lenghtStr-1]
+    if( (strShouldBeXX != "XX" && strShouldBeXX != "xx") || strShouldBe_tpl != "_tpl"){
+        return (false);
+    }
+    return (true);
 }
 
 
@@ -493,26 +494,27 @@ Item toCopyItem;
 Folder folderProjectDir;
 void run_Copy_fct(DB box) {
     /*Copy the new project into the choosen destination*/
-	progressValue = 0;
-	Project projectToCopy = project (fullName(toCopyItem))
+    progressValue = 0;
+    Project projectToCopy = project (fullName(toCopyItem))
     if(null projectToCopy){
-    	errorDisplayExit("No selected project", false)
+        errorDisplayExit("No selected project", false)
     }
-    int countMax = 1 //start to 1 because 
+    int countMax = 1, nbModulesTplates = 0 //start to 1 because 
 
     Item itemCount
     for itemCount in projectToCopy do{//count number of item that will be copied
         if(type (itemCount) == "Formal" && isTemplateModule(itemCount)){ //only instantiate formal motule template
-			countMax++
-		}
+            nbModulesTplates++
+        }
     }
+    countMax = countMax + nbModulesTplates
     progressStart(box, "Copying...", "",countMax)
-	progressMessage "Copying Project...(can take several minutes, please wait)"
+    progressMessage "Copying Project...(can take several minutes, please wait)"
     string renamedProject = get(dbeField)
     progressStep ++progressValue
     
     string msgErr = createItemfromTemplate(toCopyItem, renamedProject, description(toCopyItem), folderProjectDir)
-	if(!null msgErr){
+    if(!null msgErr){
         progressStop
         errorDisplayExit(("Error while instantiating template project : "msgErr),true)
     }
@@ -527,6 +529,8 @@ void run_Copy_fct(DB box) {
     //print "-> Project copied into "(name(folderProjectDir))"\n"
     /*Copy all modules of new project*/
     Item itemProject
+    int numberList = 0
+    Skip addedTplateModule = create;
     for itemProject in newProject do{
         if(type (itemProject) == "Formal" && isTemplateModule(itemProject)){ //only instantiate formal motule template
             /*Delete DVS_tpl Prefix*/
@@ -544,51 +548,80 @@ void run_Copy_fct(DB box) {
                }
             }
             renamedItem = prefix(((name(itemProject))[4:])) //obtains "1001_example_DVS_tpl" then replace DVS_tpl into "Main"
-            //print "\ncopying  "name(itemProject)"  into  "replaceString(renamedItem,"DVS_tpl","Main")
-            string msgErr = createItemfromTemplate(itemProject, replaceString(renamedItem,"DVS_tpl","Main"), description(itemProject), getParentFolder(itemProject))
-			if(!null msgErr){
+            renamedItem = replaceString(renamedItem,"_tpl","_Main")
+            
+            //string msgErr=""
+            string msgErr = createItemfromTemplate(itemProject, renamedItem, description(itemProject), getParentFolder(itemProject))
+            if(!null msgErr){
                 progressStop
                 errorDisplayExit(("Error while instantiating template module : "msgErr),true)
+            } 
+            put(addedTplateModule, numberList,(fullName(getParentFolder(itemProject))"/"renamedItem))
+            numberList++    
+            //print numberList"\n"
+            //  print "Copied  "name(itemProject)"  into  "renamedItem"\n"
+            //  sleep_(500)
 
-            }
             progressStep ++progressValue
-			progressMessage ("Copying Formal Module...(can take several minutes, please wait) (" progressValue " /" countMax")")
-			if (progressCancelled) {
-				if (confirm("Exit ?")) {
-					progressStop
-					halt()
-				}
-			}
+            progressMessage ("Copying Formal Module...(can take several minutes, please wait) (" progressValue " /" countMax")")
+            if (progressCancelled) {
+                if (confirm("Exit ?")) {
+                    progressStop
+                    halt()
+                }
+            }
         }
     }
     progressStop
-   // print "-> All templates modules has been instantiated\n"
+
+    progressStart(box, "Updating...", "",nbModulesTplates)
+    progressMessage ("Updating Linkset Pairs...(can take several minutes, please wait) 1/"nbModulesTplates"")
+    int iList = 0
+    string nameModInst = "" 
+    for nameModInst in addedTplateModule do
+    {
+        Module moduleToUpdateLinks = read(nameModInst,false)
+        progressStep ++iList
+        progressMessage ("Updating Linkset Pairs...(can take several minutes, please wait) "iList"/"nbModulesTplates"")
+        ModName_ mod = module(fullName(moduleToUpdateLinks))
+        setLinkModuleDescriptorsExclusive(getParentFolder(item(nameModInst)),mod,true) //only allow outgoing links (checkbox in module property)
+        if(!null moduleToUpdateLinks){
+            Permission allPermission = read|modify|create|delete|control //RMCDA
+            if(hasPermission(doorsname(),getParentFolder(moduleToUpdateLinks),allPermission)){
+                string argument = getURL(moduleToUpdateLinks)
+                runUpdate(argument)
+            }else{
+                requestUpdate(moduleToUpdateLinks)
+            }
+        }
+    }
+    progressStop
     refreshDBExplorer();  
 }
 
 void main()
 {
 
-	Date dateAndTime = dateAndTime(today());
-	//print "Running Script - "dateAndTime"\n";
-	
-	/*Select Project to Copy*/
-	tplProject = miniExplorer(null,  "STEP 1", "Select a project : ",folder(DVS_TEMPLATE_PROJECT), MINI_EXP_PROJECT)
-	Project pTemplate = project (tplProject)
-	Item itemPrjTemplate = item (tplProject)
+    Date dateAndTime = dateAndTime(today());
+    
+    /*Select Project to Copy*/
+    tplProject = miniExplorer(null,  "STEP 1", "Select a project : ",folder(DVS_TEMPLATE_PROJECT), MINI_EXP_PROJECT)
+    Project pTemplate = project (tplProject)
+    Item itemPrjTemplate = item (tplProject)
     toCopyItem = itemPrjTemplate;
 
-	if(null itemPrjTemplate){
-		errorDisplayExit("Error creating project.",true)
-	}
+    if(null itemPrjTemplate){
+        errorDisplayExit("Error creating project.",false)
+    }
 
-	/*Select Destination of new Project*/
-	copyProjectIn = miniExplorer(null, "STEP 2", "Select a destination folder for project creation : ",current,  MINI_EXP_FOLDERS)
-	folderProjectDir = folder (copyProjectIn)
-	if(null folderProjectDir){
-		errorDisplayExit("Error in selected folder.",true)
-	}
+    /*Select Destination of new Project*/
+    copyProjectIn = miniExplorer(null, "STEP 2", "Select a destination folder for project creation : ",current,  MINI_EXP_FOLDERS)
+    folderProjectDir = folder (copyProjectIn)
+    if(null folderProjectDir){
+        errorDisplayExit("Error in selected folder.",false)
+    }
 
+    /*user rename project*/
     DB db2 = create("STEP 3 : Rename", styleCentered);
     label (db2, "New project name :");
     dbeField = field(db2,null,"", 50, false);

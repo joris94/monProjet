@@ -127,7 +127,7 @@ string getTemplateOfModule(Folder f, Module m)
 			}
 		}
 	}
-	return 
+	return ""
 }
 
 /******************************************************************************
@@ -227,7 +227,8 @@ void runUpdate(string url)
 	/////////////////////////////////////////////////////////////
 	scanLinkSetPairingOfFolder(getParentFolder(item(templateName)), item(templateName)); //create two skip list "lnkModName" and lnkModTgt"
 	if(lengthKey == 0){
-		errorDisplayExit("No linkset pairing to perform according to the template.",false);
+		//errorDisplayExit("No linkset pairing to perform according to the template.",false);
+		return
 	}
 	string target,expr, prefixTget, targetName, dirTget, nameLnk
 	Regexp EXPR_reg
