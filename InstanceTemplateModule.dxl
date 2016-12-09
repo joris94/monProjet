@@ -744,8 +744,8 @@ void runGUI ()
 
 void main()
 {
-	Date dateAndTime = dateAndTime(today());
-	print "Running Script - "dateAndTime"\n";
+	//Date dateAndTime = dateAndTime(today());
+	//print "Running Script - "dateAndTime"\n";
 	runGUI();
 }
 

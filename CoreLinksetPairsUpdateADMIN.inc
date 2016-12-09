@@ -203,7 +203,7 @@ void runUpdate(string url)
 		errorDisplayExit ("This script shall not be executed on a template module",true);
 	}
 	Date dateAndTime = dateAndTime(today());
-	print "Running UPDATE LINKSET PAIRS - "dateAndTime"\n";
+	//print "Running UPDATE LINKSET PAIRS - "dateAndTime"\n";
 
 
 	/////////////////////////////////////////////////////////////
@@ -212,14 +212,14 @@ void runUpdate(string url)
 	Folder currentFolder = getParentFolder(inputModule)
 	string templateName = getTemplateOfModule(currentFolder,inputModule); 	//find template in current folder	
 	if(null templateName){//template not found in the current folder -> search in DVS template folders
-		print "Template not found in current folder. Searching in DVS templates folder...\n"
+		//print "Template not found in current folder. Searching in DVS templates folder...\n"
 		templateName = getTemplateOfModuleFromDVS(item folderOfDVSTemplates, inputModule);
 		if(null templateName) //DVS template not found -> let the user select the input
 		{
 			errorDisplayExit("Template not found in DVS templates folder...Exit!",true);
 		}
 	}
-	print "---> Template of \""name(inputModule) "\" is \""templateName"\".\n"
+	//print "---> Template of \""name(inputModule) "\" is \""templateName"\".\n"
 	Module moduleTplate = read(templateName,false)
 
 	/////////////////////////////////////////////////////////////
@@ -256,13 +256,13 @@ void runUpdate(string url)
 			if (type itemInF == "Formal" && !isTemplateMod(itemInF) && (name(itemInF))[0:1] == prefixTget){
 				///////////////////CREATE LINKSET PAIRING///////////////////
 				msg = addLinkModuleDescriptor(currentFolder, fullName(inputModule), fullName(itemInF), false, true, nameLnk, "")
-				if(!null msg){
+				/*if(!null msg){
 					print "\nProblem while creating link : \n"name(inputModule)" ->  " nameLnk " -> "fullName(itemInF)"\nERROR: "msg"\n"
 				}
 				else
 				{
 					print "\nLinking : "name(inputModule)" ->  " nameLnk " -> "fullName(itemInF)" \n"
-				}
+				}*/
 			}
 		}
 	}

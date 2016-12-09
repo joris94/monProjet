@@ -11,7 +11,7 @@ void requestUpdate(Module m){
 	module_link = getURL(m)
 	string jarClient = "D:\\Users\\jgonza11\\jenkins-cli.jar"
 	string cmdLine =  "java -jar "jarClient" -s http://bie2-sv00031.vnet.valeo.com/ build DOORS/DOORS_LINKSETS -p EMAIL="users_email" -p MLINK=\""module_link"\" -f -v"
-	print cmdLine
+	//print cmdLine
 
 	if(canOpenFile(jarClient,false))
 	{
@@ -19,17 +19,16 @@ void requestUpdate(Module m){
 		//the command line call a Jenkins job - This Jenkins job call a batch which call a DXL script with admin right - As the called script (UpdateLinksetPairsBatch) create a file  we read it after the command
 		int returnCode = win32SystemWait_(cmdLine, msg, -1) //win32SystemWait_(cmdLine, msg, TIME_OUT (in ms))
 		string msgFromUpdateLinksetPairsBatch = readFile fileToRead
-		print "\n"
+		//print "\n"
 		if(returnCode == 3){
-			print "TIME-OUT...\n"
-			print "Output (if any): "msg"\n"
+			print "TIME-OUT...\n"msg"\n"
 			print msgFromUpdateLinksetPairsBatch
 		}else if (returnCode == 1){
 			print "Error while executing the command"
-		}else{
+		}/*else{
 			print "Output: "msg"\n"
 			print msgFromUpdateLinksetPairsBatch
-		}
+		}*/
 		deleteFile (fileToRead)
 	}
 	else

@@ -387,15 +387,16 @@ string replaceString (string sSource, string sSearch, string sReplace) {
 /// @param[in] f_dest:		The new item  destination folder
 ///
 //***********************************************************
-void createItemfromTemplate(Item i_ref, string new_name, string new_desc, Folder f_dest)
+string createItemfromTemplate(Item i_ref, string new_name, string new_desc, Folder f_dest)
 { 
 	Folder f_ref
-	string errmsg
+	string errmsg = ""
 	string template_name
 	string full_template_name
 	string f_dest_name
 	const string ROOT = "/"
 	
+
 	// Get the current configuration
 
 	f_dest_name = fullName(f_dest)
@@ -409,12 +410,12 @@ void createItemfromTemplate(Item i_ref, string new_name, string new_desc, Folder
 
 	errmsg = clipPaste(f_ref)
 	if(!null errmsg) {
-		errorDisplayExit ((name(i_ref))"\nError message: "errmsg,false);
+		return errmsg
 	}
 
 	errmsg = clipClear(true)
 	if(!null errmsg){
-		errorDisplayExit ((name(i_ref))"\nError message: "errmsg,false);
+		return errmsg
 	}
 
 	//Find the new created item in  destination folder(must be "Copy of" template_name))
@@ -436,7 +437,7 @@ void createItemfromTemplate(Item i_ref, string new_name, string new_desc, Folder
 	if(!null errmsg){
 		delete(new_item)
 		purge (new_item)
-		errorDisplayExit ((name(i_ref))"\nError message: "errmsg,false);
+		return errmsg
 	}
 
 	//Rename the new created item from  "Copy of name(i)"  to "new_name"
@@ -444,9 +445,10 @@ void createItemfromTemplate(Item i_ref, string new_name, string new_desc, Folder
 	if(!null errmsg){
 		delete(new_item)
 		purge (new_item)
-		errorDisplayExit ((name(i_ref))"\nError message: "errmsg,false);
+        return errmsg
+		//errorDisplayExit ((name(i_ref))"\nError message: "errmsg,false);
 	}
-	//Make the new item visible			    
+	return ""//Make the new item visible			    
 }//createItemfromTemplate
 
 /******************************************************************************
@@ -484,19 +486,24 @@ void run_Copy_fct(DB box) {
 		}
     }
     progressStart(box, "Copying...", "",countMax)
-	progressMessage "Copying Project...(can freeze)"
+	progressMessage "Copying Project...(can take several minutes, please wait)"
     string renamedProject = get(dbeField)
     progressStep ++progressValue
-    createItemfromTemplate(toCopyItem, renamedProject, description(toCopyItem), folderProjectDir)
-	
+    
+    string msgErr = createItemfromTemplate(toCopyItem, renamedProject, description(toCopyItem), folderProjectDir)
+	if(!null msgErr){
+        progressStop
+        errorDisplayExit(("Error when instantiating template project : "msgErr),true)
+    }
  
 
     Item itemNewPrj = item((fullName(folderProjectDir))"/"(renamedProject))
     Project newProject = project(itemNewPrj)
     if(null newProject){
+        progressStop
         errorDisplayExit("Error while accessing new project.",true)
     }
-    print "-> Project copied into "(name(folderProjectDir))"\n"
+    //print "-> Project copied into "(name(folderProjectDir))"\n"
     /*Copy all modules of new project*/
     Item itemProject
     for itemProject in newProject do{
@@ -505,9 +512,14 @@ void run_Copy_fct(DB box) {
             renamedItem = (name(itemProject))[0:3] //get "10xx" from "10xx_example_DVS_tpl"
             renamedItem = (renamedItem[0:1])"01"(((name(itemProject))[4:])) //obtains "1001_example_DVS_tpl" then replace DVS_tpl into "Main"
             //print "\ncopying  "name(itemProject)"  into  "replaceString(renamedItem,"DVS_tpl","Main")
-            createItemfromTemplate(itemProject, replaceString(renamedItem,"DVS_tpl","Main"), description(itemProject), getParentFolder(itemProject))
-			progressStep ++progressValue
-			progressMessage ("Copying Formal Module...(can freeze) (" progressValue " /" countMax")")
+            string msgErr = createItemfromTemplate(itemProject, replaceString(renamedItem,"DVS_tpl","Main"), description(itemProject), getParentFolder(itemProject))
+			if(!null msgErr){
+                progressStop
+                errorDisplayExit(("Error when instantiating template module : "msgErr),true)
+
+            }
+            progressStep ++progressValue
+			progressMessage ("Copying Formal Module...(can take several minutes, please wait) (" progressValue " /" countMax")")
 			if (progressCancelled) {
 				if (confirm("Exit ?")) {
 					progressStop
@@ -517,7 +529,7 @@ void run_Copy_fct(DB box) {
         }
     }
     progressStop
-    print "-> All templates modules has been instantiated\n"
+   // print "-> All templates modules has been instantiated\n"
     refreshDBExplorer();  
 }
 
@@ -525,18 +537,16 @@ void main()
 {
 
 	Date dateAndTime = dateAndTime(today());
-	print "Running Script - "dateAndTime"\n";
+	//print "Running Script - "dateAndTime"\n";
 	
 	/*Select Project to Copy*/
 	tplProject = miniExplorer(null,  "STEP 1", "Select a project : ",folder(DVS_TEMPLATE_PROJECT), MINI_EXP_PROJECT)
 	Project pTemplate = project (tplProject)
 	Item itemPrjTemplate = item (tplProject)
     toCopyItem = itemPrjTemplate;
-	if(null pTemplate){
-		errorDisplayExit("Error creating project. (project)",true)
-	}
+
 	if(null itemPrjTemplate){
-		errorDisplayExit("Error creating project. (item)",true)
+		errorDisplayExit("Error creating project.",true)
 	}
 
 	/*Select Destination of new Project*/

@@ -8,7 +8,8 @@
 
 Module m = current
 if(null m){
-	print "Script shall be launched in module context.\n"
+	print "Script shall be launched in module context."
+	ack("Script shall be launched in module context.");
 	halt()
 }
 

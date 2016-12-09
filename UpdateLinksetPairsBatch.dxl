@@ -15,7 +15,7 @@ const string fileToWrite = "D:\\Users\\"doorsname"\\tempUpdateLinkset.txt"
 ******************************************************************************/
 void writeMsg(string txt)
 {
-	print txt
+	//print txt
 	writtingBuf << txt
 }
 
@@ -175,7 +175,7 @@ void generateLinksetPairs(Module inputModule)
         errorDisplayExit ("This script shall not be executed on a template module",true);
     }
     Date dateAndTime = dateAndTime(today());
-    writeMsg "Running Script UpdateLinksetPairsBatch - "dateAndTime"\n";
+    //writeMsg "Running Script UpdateLinksetPairsBatch - "dateAndTime"\n";
 
 
     /////////////////////////////////////////////////////////////
@@ -186,7 +186,7 @@ void generateLinksetPairs(Module inputModule)
     if(null templateName){//template not found in the current folder -> search in DVS template folders
         errorDisplayExit( "Template not found in current folder...\n",false);
     }
-    writeMsg "---> Template of \""name(inputModule) "\" is \""templateName"\".\n"
+    //writeMsg "---> Template of \""name(inputModule) "\" is \""templateName"\".\n"
     Module moduleTplate = read(templateName,false)
 
     /////////////////////////////////////////////////////////////
