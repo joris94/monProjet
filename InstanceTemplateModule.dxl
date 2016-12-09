@@ -8,8 +8,8 @@
 */
 
 #include <D:\users\log\logInclude.dxl>
-//#include <..\\addins\\Valeo\\admin\\CoreLinksetPairsUpdateADMIN.inc>
-//#include <..\\addins\\Valeo\\admin\\CoreLinksetPairsUpdateJENKINS.inc>
+#include <..\\addins\\Valeo\\admin\\CoreLinksetPairsUpdateADMIN.inc>
+#include <..\\addins\\Valeo\\admin\\CoreLinksetPairsUpdateJENKINS.inc>
 //! GLOBALS
 pragma		encoding, "UTF-8";
 Item		itemRefTemplate, itemDestinationFolder;
@@ -623,9 +623,9 @@ void run_Copy_fct(DB box) {
 		Permission allPermission = read|modify|create|delete|control //RMCDA
 		if(hasPermission(doorsname(),getParentFolder(moduleToUpdateLinks),allPermission)){
 			string argument = getURL(moduleToUpdateLinks)
-			//runUpdate(argument)
+			runUpdate(argument)
 		}else{
-			//requestUpdate(moduleToUpdateLinks)
+			requestUpdate(moduleToUpdateLinks)
 		}
 	}
 }
