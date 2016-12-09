@@ -9,11 +9,11 @@
 */
 
 #include <D:\users\log\logInclude.dxl>
-/*#include <..\\addins\\Valeo\\admin\\CoreLinksetPairsUpdateADMIN.inc>
-#include <..\\addins\\Valeo\\admin\\CoreLinksetPairsUpdateJENKINS.inc>*/
-
+#include <..\\addins\\Valeo\\admin\\CoreLinksetPairsUpdateADMIN.inc>
+#include <..\\addins\\Valeo\\admin\\CoreLinksetPairsUpdateJENKINS.inc>
+/*
 #include <CoreLinksetPairsUpdateADMIN.inc>
-#include <CoreLinksetPairsUpdateJENKINS.inc>
+#include <CoreLinksetPairsUpdateJENKINS.inc>*/
 //! GLOBALS
 pragma      encoding, "UTF-8";
 
