@@ -8,8 +8,8 @@
 */
 
 #include <D:\users\log\logInclude.dxl>
-#include <..\\addins\\Valeo\\admin\\CoreLinksetPairsUpdateADMIN.inc>
-#include <..\\addins\\Valeo\\admin\\CoreLinksetPairsUpdateJENKINS.inc>
+//#include <..\\addins\\Valeo\\admin\\CoreLinksetPairsUpdateADMIN.inc>
+//#include <..\\addins\\Valeo\\admin\\CoreLinksetPairsUpdateJENKINS.inc>
 //! GLOBALS
 pragma		encoding, "UTF-8";
 Item		itemRefTemplate, itemDestinationFolder;
@@ -543,11 +543,12 @@ string getUserSelection(string infoString,  bool moduleTrueOrFolder )
 string createItemfromTemplate(Item i_ref, string new_name, string new_desc, Folder f_dest)
 { 
 	Folder f_ref
-	string errmsg
+	string errmsg = ""
 	string template_name
 	string full_template_name
 	string f_dest_name
 	const string ROOT = "/"
+	
 
 	// Get the current configuration
 
@@ -562,12 +563,12 @@ string createItemfromTemplate(Item i_ref, string new_name, string new_desc, Fold
 
 	errmsg = clipPaste(f_ref)
 	if(!null errmsg) {
-		errorDisplayExit (errmsg);
+		return errmsg
 	}
 
 	errmsg = clipClear(true)
 	if(!null errmsg){
-		errorDisplayExit (errmsg);
+		return errmsg
 	}
 
 	//Find the new created item in  destination folder(must be "Copy of" template_name))
@@ -577,19 +578,19 @@ string createItemfromTemplate(Item i_ref, string new_name, string new_desc, Fold
 	Regexp I_NAME = regexp2 "(^.*)" template_name "$"
 	//
 	for i in f_ref do {
-	copy_name = fullName(i)
-	if (I_NAME copy_name){
-	   if (i != i_ref){
-		new_item = i
-		}
-	  }
+		copy_name = fullName(i)
+		if (I_NAME copy_name){
+	   		if (i != i_ref){
+				new_item = i
+			}
+	  	}
 	}
 	//Move new item to destination folder
 	errmsg = move(new_item, f_dest)
 	if(!null errmsg){
 		delete(new_item)
 		purge (new_item)
-		errorDisplayExit (errmsg);
+		return errmsg
 	}
 
 	//Rename the new created item from  "Copy of name(i)"  to "new_name"
@@ -597,12 +598,11 @@ string createItemfromTemplate(Item i_ref, string new_name, string new_desc, Fold
 	if(!null errmsg){
 		delete(new_item)
 		purge (new_item)
-		errorDisplayExit (errmsg);
+        return errmsg
+		//errorDisplayExit ((name(i_ref))"\nError message: "errmsg,false);
 	}
-	//Make the new item visible			    
-	refreshDBExplorer();    
-	return;
-}//createItemfromTemplate
+	return ""//Make the new item visible			    
+}//createItemfromTemplate//createItemfromTemplate
 
 
 
@@ -610,8 +610,10 @@ string createItemfromTemplate(Item i_ref, string new_name, string new_desc, Fold
 void run_Copy_fct(DB box) {
 	//////Rename the output//////
 	string finalRenaming = renamedModule get(dbeField)
-	createItemfromTemplate(itemRefTemplate, finalRenaming, description(itemRefTemplate), folder(itemDestinationFolder))
-
+	string errMsg = createItemfromTemplate(itemRefTemplate, finalRenaming, description(itemRefTemplate), folder(itemDestinationFolder))
+	if(!null errMsg){
+		errorDisplayExit(("Error while instantiating template module : "errMsg))
+	}
 	//Ask for update linkset Pairs
 	Module moduleToUpdateLinks = read(fullName(folder(itemDestinationFolder))"/"finalRenaming, false)
 	ModName_ mod = module(fullName(moduleToUpdateLinks))
@@ -621,75 +623,115 @@ void run_Copy_fct(DB box) {
 		Permission allPermission = read|modify|create|delete|control //RMCDA
 		if(hasPermission(doorsname(),getParentFolder(moduleToUpdateLinks),allPermission)){
 			string argument = getURL(moduleToUpdateLinks)
-			runUpdate(argument)
+			//runUpdate(argument)
 		}else{
-			requestUpdate(moduleToUpdateLinks)
+			//requestUpdate(moduleToUpdateLinks)
 		}
 	}
 }
 
-//***********************************************************
-/// @analyzePrefixesProject(Item itmWork)
-/// @brief Analyze all the project (folders and subfolders) from where the template is copied, in order to find the right prefix
-///
-/// @param[in] itmWork:	any item
-///
-//***********************************************************
-void analyzePrefixesProject(Item itmWork) {
-	if (type(itmWork) == "Project") {
-		Item itmHelp;
-		for itmHelp in folder(itmWork) do {
-			analyzePrefixesProject(itmHelp);
-		}
-	}
-	if (type(itmWork) == "Folder") {
-		Item itmHelp;
-		for itmHelp in folder(itmWork) do {
-			analyzePrefixesProject(itmHelp);
-		}
-	}
-	if (type(itmWork) == "Formal") {
-		prefixUsed = name(itmWork);
-		prefixUsed = prefixUsed[0:3];
-		if(isValidInt prefixUsed){
-			intPrefixUsed = intOf(prefixUsed)
-			if(intPrefixUsed == intPrefix){
-				intPrefix++;
+
+/******************************************************************************
+	getTemplateOfModule
+	Scan the folder of the input model to find template
+******************************************************************************/
+string getTemplateOfModule(Folder f, Module m)
+{
+	Item itemInFolder
+	for itemInFolder in f do
+	{
+		if (type(itemInFolder) == "Formal") {
+			if(isTemplateModule(itemInFolder)){
+				tplateCat = (name(itemInFolder))[0:1];
+				tplateName = (name(itemInFolder))[4:(length(name(itemInFolder)))-8]
+				rexep = tplateCat"[0-9][0-9]"tplateName
+				Regexp I_NAME = regexp2 (rexep)
+				if(I_NAME name(m)){
+					//print "\n "name(itemInFolder)" is template of " name(inputModule)"\n"
+					return fullName (itemInFolder)
+				}
 			}
 		}
 	}
-}//analyzePrefixesProject
+	return ""
+}
+
+/******************************************************************************
+    isFreePrefix
+******************************************************************************/
+bool isFreePrefix(Project p ,string prefix)
+{
+    //input : 4 chiffres 
+    Item i
+    bool freePrefix = true
+    for i in p do {
+        if (type(i) == "Formal"){
+            if((name(i))[0:3] == prefix){
+                return (false)
+            }
+        }
+    }
+    return (true)
+}
+
+/******************************************************************************
+	replaceString
+******************************************************************************/
+string replaceString (string sSource, string sSearch, string sReplace) {
+    int iLen = length sSource
+    if (iLen == 0) return ""
+    
+    int iLenSearch = length(sSearch)
+    
+    if (iLenSearch == 0) { 
+        //raiseError ("Parameter error", "in strings.inc/replace: search string must not be empty")
+        return "" 
+    }
+    
+    // read the first char for latter comparison -> speed optimization
+    char firstChar = sSearch[0]
+    
+    Buffer s = create() 
+    int pos = 0, d1,d2;    
+    int i
+    
+    while (pos < iLen) { 
+        char ch = sSource[pos]; 
+        bool found = true
+        
+        if (ch != firstChar) {pos ++; s+= ch; continue}
+        for (i = 1; i < iLenSearch; i++) {
+           if (sSource[pos+i] != sSearch[i]) { found = false; break }
+        }
+        if (!found) {pos++; s+= ch; continue}
+        s += sReplace
+        pos += iLenSearch
+    }
+    
+    string result = stringOf s
+    delete s
+    return result
+}
 
 
-//***********************************************************
-/// @getPrefixToUse()
-/// @brief Find prefix to use by running the analyzePrefixesProject() function
-///
-/// @return strPrefix : the prefix to use for the copie and paste function
-///
-//***********************************************************
-string getPrefixToUse(){
-	string NameOfModuleTemplate = name(itemRefTemplate);
-	string strPrefix = NameOfModuleTemplate[0:1];
-	
-	intPrefix = intOf(strPrefix)*100+1; //to obtain 1001 from 10
-	int tmp_prefix = 0;
-	
-	Project projectTop = getParentProject(folder(itemDestinationFolder));
-	uniqueIdProject = uniqueID(projectTop);
-	itemProject = itemFromID(uniqueIdProject);
-	string prefixGenerated = strPrefix;
-	while(tmp_prefix != intPrefix){
-		tmp_prefix = intPrefix;
-		analyzePrefixesProject(itemProject); //start by loocking for 1001 (if input is 10xx). If there already is a module 1001, then prefix++ to get 1002. But we may have missed 1002 module from the beginning of the loop. So relaunch the test.
-	}	
-	strPrefix = intPrefix "";
-	return strPrefix;
-}//getPrefixToUse
-
-//! \fn run_GUI
-//! \return void
-//! \brief This function creates the formal modules
+/******************************************************************************
+	getRenamingModule
+******************************************************************************/
+string getRenamingModule(Item i){
+	string tmp =  replaceString(name(i),"_tpl","");
+	string prefix = (name(i))[0:1]"01"
+	int intStr = 1
+	while (!isFreePrefix(getParentProject(i), prefix)){
+       intStr++
+       if(intStr<10){
+           prefix = (prefix[0:1])"0"intStr""
+       }
+       else{ 
+           prefix = (prefix[0:1])intStr""
+       }
+    }
+    return prefix tmp[4:]
+}
 
 
 //***********************************************************
@@ -710,31 +752,31 @@ void runGUI ()
 	}
 	itemRefTemplate = item(formalModuleTemplate );
 	
-	////////STEP 2 --- USER SELECTION - FOLDER DESTINATION////////
-	/*string folderToCopyModule = "";
-	folderToCopyModule = getUserSelection("STEP 2 : Select Target Folder", false);
-	if(null folderToCopyModule){
-		exitWithoutError();
-	}*/
 	Folder fDest = getParentFolder(itemRefTemplate)
 	itemDestinationFolder = item(fullName(fDest));       
 
-	////////STEP 3 --- RENAME////////
+	////////STEP 2 --- RENAME////////
 	DB db2 = create("STEP 2 : Rename", styleCentered);
 	label (db2, "New module name :");
-
+	
+	string toEnter = "", renamedModule ="";
 	if(isTemplateModule(itemRefTemplate))
 	{
-		string nameAfterCopy = name(itemRefTemplate);
-		int nameLength = length (nameAfterCopy);
-		nameAfterCopy = nameAfterCopy[4:nameLength-4];
-		string prefix = getPrefixToUse();
-		renamedModule = prefix nameAfterCopy;
-		dbeField = field(db2,renamedModule,"", 50, false);
+		renamedModule = getRenamingModule(itemRefTemplate)
+	}else if (isValidInt((name(itemRefTemplate))[0:3])){ //not a template but instance of a template (so start with 1101 for instance)
+		//find a template
+		string templateOfInput = getTemplateOfModule(getParentFolder(itemRefTemplate), read((fullName(itemRefTemplate)),false))
+		if (null templateOfInput){
+			errorDisplayExit("No template found for input module.")
+		}
+		Item i = item (templateOfInput);
+		renamedModule = getRenamingModule(i) 
 	}else{
-		renamedModule = name(itemRefTemplate);
-		dbeField = field(db2,null,renamedModule, 50, false);
+		toEnter = name(itemRefTemplate);
 	}
+		//dbeField = field(db2,renamedModule,"", 50, false);
+
+	dbeField = field(db2,renamedModule,toEnter, 50, false);
 	ok(db2, "Run", run_Copy_fct);
 	realize db2;
 	show db2;

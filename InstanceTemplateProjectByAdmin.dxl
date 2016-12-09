@@ -467,9 +467,30 @@ bool isTemplateModule(Item i)
 }
 
 
+
+/******************************************************************************
+    isFreePrefix
+******************************************************************************/
+bool isFreePrefix(Project p ,string prefix)
+{
+    //input : 4 chiffres 
+    Item i
+    bool freePrefix = true
+    for i in p do {
+        if (type(i) == "Formal"){
+            if((name(i))[0:3] == prefix){
+                return (false)
+            }
+        }
+    }
+    return (true)
+}
+
+/******************************************************************************
+    run_Copy_fct
+******************************************************************************/
 Item toCopyItem;
 Folder folderProjectDir;
-
 void run_Copy_fct(DB box) {
     /*Copy the new project into the choosen destination*/
 	progressValue = 0;
@@ -493,7 +514,7 @@ void run_Copy_fct(DB box) {
     string msgErr = createItemfromTemplate(toCopyItem, renamedProject, description(toCopyItem), folderProjectDir)
 	if(!null msgErr){
         progressStop
-        errorDisplayExit(("Error when instantiating template project : "msgErr),true)
+        errorDisplayExit(("Error while instantiating template project : "msgErr),true)
     }
  
 
@@ -510,12 +531,24 @@ void run_Copy_fct(DB box) {
         if(type (itemProject) == "Formal" && isTemplateModule(itemProject)){ //only instantiate formal motule template
             /*Delete DVS_tpl Prefix*/
             renamedItem = (name(itemProject))[0:3] //get "10xx" from "10xx_example_DVS_tpl"
-            renamedItem = (renamedItem[0:1])"01"(((name(itemProject))[4:])) //obtains "1001_example_DVS_tpl" then replace DVS_tpl into "Main"
+            string prefix = (renamedItem[0:1])"01"
+            int intStr = 1
+            while (!isFreePrefix(newProject, prefix)){
+               intStr++
+               if(intStr<10){
+                   prefix = (prefix[0:1])"0"intStr""
+               }
+               else
+               { 
+                   prefix = (prefix[0:1])intStr""
+               }
+            }
+            renamedItem = prefix(((name(itemProject))[4:])) //obtains "1001_example_DVS_tpl" then replace DVS_tpl into "Main"
             //print "\ncopying  "name(itemProject)"  into  "replaceString(renamedItem,"DVS_tpl","Main")
             string msgErr = createItemfromTemplate(itemProject, replaceString(renamedItem,"DVS_tpl","Main"), description(itemProject), getParentFolder(itemProject))
 			if(!null msgErr){
                 progressStop
-                errorDisplayExit(("Error when instantiating template module : "msgErr),true)
+                errorDisplayExit(("Error while instantiating template module : "msgErr),true)
 
             }
             progressStep ++progressValue
