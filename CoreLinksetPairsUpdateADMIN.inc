@@ -102,14 +102,14 @@ string getTemplateOfModuleFromDVS(Item itmWork, Module m) {
 			}
 		}
 	}
-	return
+	return ""
 }
 
 /******************************************************************************
 	getTemplateOfModule
 	Scan the folder of the input model to find template
 ******************************************************************************/
-string getTemplateOfModule(Folder f, Module m)
+string getTemplateOfModuleInFolder(Folder f, Module m)
 {
 	Item itemInFolder
 	for itemInFolder in f do
@@ -117,11 +117,12 @@ string getTemplateOfModule(Folder f, Module m)
 		if (type(itemInFolder) == "Formal") {
 			if(isTemplateMod(itemInFolder)){
 				tplateCat = (name(itemInFolder))[0:1];
-				tplateName = (name(itemInFolder))[4:(length(name(itemInFolder)))-8]
+				tplateName = (name(itemInFolder))[4:(length(name(itemInFolder)))-4]
 				rexep = tplateCat"[0-9][0-9]"tplateName
+				//print "\n"rexep"\n"
 				Regexp I_NAME = regexp2 (rexep)
 				if(I_NAME name(m)){
-					//print "\n "name(itemInFolder)" is template of " name(inputModule)"\n"
+					//print "\n "name(itemInFolder)" is template \n"
 					return fullName (itemInFolder)
 				}
 			}
@@ -202,15 +203,15 @@ void runUpdate(string url)
 	if( isTemplateMod(item (fullName(inputModule)))){
 		errorDisplayExit ("This script shall not be executed on a template module",true);
 	}
-	Date dateAndTime = dateAndTime(today());
+	//Date dateAndTime = dateAndTime(today());
 	//print "Running UPDATE LINKSET PAIRS - "dateAndTime"\n";
-
+	//print name(inputModule)"\n"
 
 	/////////////////////////////////////////////////////////////
 	///////////////////////Search Template///////////////////////
 	/////////////////////////////////////////////////////////////
 	Folder currentFolder = getParentFolder(inputModule)
-	string templateName = getTemplateOfModule(currentFolder,inputModule); 	//find template in current folder	
+	string templateName = getTemplateOfModuleInFolder(currentFolder,inputModule) 	//find template in current folder	
 	if(null templateName){//template not found in the current folder -> search in DVS template folders
 		//print "Template not found in current folder. Searching in DVS templates folder...\n"
 		templateName = getTemplateOfModuleFromDVS(item folderOfDVSTemplates, inputModule);
