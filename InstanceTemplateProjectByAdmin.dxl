@@ -334,6 +334,7 @@ void errorDisplayExit(string msg, bool showMsg)
 {
     if (showMsg) ack(msg);
     print(msg);
+    refreshDBExplorer()
     logEnd();
     halt();
 }
@@ -567,6 +568,7 @@ void run_Copy_fct(DB box) {
             if (progressCancelled) {
                 if (confirm("Exit ?")) {
                     progressStop
+                    refreshDBExplorer()
                     halt()
                 }
             }
@@ -596,7 +598,7 @@ void run_Copy_fct(DB box) {
         }
     }
     progressStop
-    refreshDBExplorer();  
+    refreshDBExplorer()
 }
 
 void main()
