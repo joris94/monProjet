@@ -244,6 +244,7 @@ void runUpdate(string url)
 		if(!EXPR_reg target){//should not happen...
 			errorDisplayExit("Error target of template.",false)
 		}
+
 		targetName = target[match 0] 
 		prefixTget = targetName[0:1]
 		int offset, length
