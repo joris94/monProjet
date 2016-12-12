@@ -1,5 +1,4 @@
-//#include <logInclude.dxl>
-#include <D:\users\log\logInclude.dxl>
+#include <E:\users\log\logInclude.dxl>
 
 //! GLOBALS
 pragma      encoding, "UTF-8";
@@ -7,16 +6,16 @@ Skip        lnkModName = create;
 Skip        lnkModTgt = create;
 int         lengthKey = 0;
 string      folderOfDVSTemplates = "/p-DE-BIE2-TRAIN19" //should be changed for production database
-Stream 		writtingBuf;
-const string fileToWrite = "D:\\Users\\"doorsname"\\tempUpdateLinkset.txt"
+Stream      writtingBuf;
+//const string fileToWrite = "D:\\Users\\"doorsname"\\tempUpdateLinkset.txt"
 
 /******************************************************************************
     writeMsg
 ******************************************************************************/
 void writeMsg(string txt)
 {
-	//print txt
-	writtingBuf << txt
+    //print txt
+    writtingBuf << txt
 }
 
 /******************************************************************************
@@ -175,7 +174,7 @@ void generateLinksetPairs(Module inputModule)
         errorDisplayExit ("This script shall not be executed on a template module",true);
     }
     Date dateAndTime = dateAndTime(today());
-    //writeMsg "Running Script UpdateLinksetPairsBatch - "dateAndTime"\n";
+    writeMsg "Running Script UpdateLinksetPairsBatch - "dateAndTime"\n";
 
 
     /////////////////////////////////////////////////////////////
@@ -186,7 +185,7 @@ void generateLinksetPairs(Module inputModule)
     if(null templateName){//template not found in the current folder -> search in DVS template folders
         errorDisplayExit( "Template not found in current folder...\n",false);
     }
-    //writeMsg "---> Template of \""name(inputModule) "\" is \""templateName"\".\n"
+    writeMsg "---> Template of \""name(inputModule) "\" is \""templateName"\".\n"
     Module moduleTplate = read(templateName,false)
 
     /////////////////////////////////////////////////////////////
@@ -194,8 +193,7 @@ void generateLinksetPairs(Module inputModule)
     /////////////////////////////////////////////////////////////
     scanLinkSetPairingOfFolder(getParentFolder(item(templateName)), item(templateName)); //create two skip list "lnkModName" and lnkModTgt"
     if(lengthKey == 0){
-        //errorDisplayExit("No linkset pairing to perform according to the template.",false);
-        return
+        errorDisplayExit("No linkset pairing to perform according to the template.",false);
     }
     string target,expr, prefixTget, targetName, dirTget, nameLnk
     Regexp EXPR_reg
@@ -238,7 +236,7 @@ void generateLinksetPairs(Module inputModule)
 
 
 
-void main(string url)
+void main(string url, string unique_file_name)
 {
     string result = null
     ModuleVersion moduleFromURL
@@ -257,11 +255,13 @@ void main(string url)
     if(null m){
        errorDisplayExit("Error, The URL does not link to a module.",false)
     }
-    writtingBuf = write(fileToWrite)
-    generateLinksetPairs(m); //3701_MdRs_Main
+    writtingBuf = write(unique_file_name)
+    generateLinksetPairs(m); 
+    ModName_ mod = module(fullName(moduleFromURL))
+    setLinkModuleDescriptorsExclusive(getParentFolder(moduleFromURL),mod,true)
+    writtingBuf << "\nDXL_EXECUTION_FINISHED_OK"
     close (writtingBuf)
+    
 }
 
 logStart("DVS - Update Linkset Pairs (from jenkins job)");
-main("doors://doorscda-pp:36677/?version=2&prodID=0&view=00000006&urn=urn:telelogic:fc0791cf-f0fb-11e5-88f8-93d8defe90ca:1-43463251374b73b7-O-10-00092004")
-logEnd();

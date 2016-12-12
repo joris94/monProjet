@@ -47,6 +47,7 @@ void errorDisplayExit(string msg)
 void exitWithoutError()
 {
 	logEnd();
+	refreshDBExplorer()
 	halt();
 }
 
@@ -600,7 +601,6 @@ string createItemfromTemplate(Item i_ref, string new_name, string new_desc, Fold
 		delete(new_item)
 		purge (new_item)
         return errmsg
-		//errorDisplayExit ((name(i_ref))"\nError message: "errmsg,false);
 	}
 	return ""//Make the new item visible			    
 }//createItemfromTemplate//createItemfromTemplate
@@ -626,9 +626,12 @@ void run_Copy_fct(DB box) {
 			string argument = getURL(moduleToUpdateLinks)
 			runUpdate(argument)
 		}else{
-			requestUpdate(moduleToUpdateLinks)
+			if(confirm ("This can take a few minutes...",1)){
+				requestUpdate(moduleToUpdateLinks)
+			}
 		}
 	}
+	close(moduleToUpdateLinks)
 	refreshDBExplorer()
 }
 
@@ -720,7 +723,7 @@ string replaceString (string sSource, string sSearch, string sReplace) {
 	getRenamingModule
 ******************************************************************************/
 string getRenamingModule(Item i){
-	string tmp =  replaceString(name(i),"_tpl","");
+	string tmp =  replaceString(name(i),"_tpl","")
 	string prefix = (name(i))[0:1]"01"
 	int intStr = 1
 	while (!isFreePrefix(getParentProject(i), prefix)){
@@ -768,7 +771,9 @@ void runGUI ()
 		renamedModule = getRenamingModule(itemRefTemplate)
 	}else if (isValidInt((name(itemRefTemplate))[0:3])){ //not a template but instance of a template (so start with 1101 for instance)
 		//find a template
-		string templateOfInput = getTemplateOfModule(getParentFolder(itemRefTemplate), read((fullName(itemRefTemplate)),false))
+		Module tmpMod =  read((fullName(itemRefTemplate)),false)
+		string templateOfInput = getTemplateOfModule(getParentFolder(itemRefTemplate),tmpMod)
+		close(tmpMod)
 		if (null templateOfInput){
 			errorDisplayExit("No template found for input module.")
 		}

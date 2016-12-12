@@ -596,24 +596,21 @@ void run_Copy_fct(DB box) {
                 requestUpdate(moduleToUpdateLinks)
             }
         }
+        close(moduleToUpdateLinks)
     }
     progressStop
     refreshDBExplorer()
 }
 
 void main()
-{
-
-    Date dateAndTime = dateAndTime(today());
-    
+{ 
     /*Select Project to Copy*/
     tplProject = miniExplorer(null,  "STEP 1", "Select a project : ",folder(DVS_TEMPLATE_PROJECT), MINI_EXP_PROJECT)
-    Project pTemplate = project (tplProject)
     Item itemPrjTemplate = item (tplProject)
     toCopyItem = itemPrjTemplate;
 
     if(null itemPrjTemplate){
-        errorDisplayExit("Error creating project.",false)
+        halt()
     }
 
     /*Select Destination of new Project*/

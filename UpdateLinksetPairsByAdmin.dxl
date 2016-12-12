@@ -531,7 +531,7 @@ void main(string url)
 		}
 	}
 	print "---> Template of \""name(inputModule) "\" is \""templateName"\".\n"
-	Module moduleTplate = read(templateName,false)
+	//Module moduleTplate = read(templateName,false)
 
 	/////////////////////////////////////////////////////////////
 	///////////////////Compute Linkset Pairing///////////////////

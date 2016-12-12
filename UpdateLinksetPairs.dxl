@@ -22,6 +22,8 @@ if(hasPermission(doorsname(),getParentFolder(m),allPermission)){
 }else{
 	#include <Valeo\\admin\\CoreLinksetPairsUpdateJENKINS.inc>
 	logStart("DVS - Update Linkset Pairs (jenkins)");
-	requestUpdate(m)
+	if(confirm ("This can take a few minutes...",1)){
+		requestUpdate(m)
+	}
 }
 logEnd();
