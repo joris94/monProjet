@@ -40,6 +40,7 @@ void errorDisplayExit(string msg)
 {
 	ack(msg);
 	logEnd();
+	refreshDBExplorer()
 	halt();
 }
 
@@ -628,6 +629,7 @@ void run_Copy_fct(DB box) {
 			requestUpdate(moduleToUpdateLinks)
 		}
 	}
+	refreshDBExplorer()
 }
 
 
@@ -759,7 +761,8 @@ void runGUI ()
 	DB db2 = create("STEP 2 : Rename", styleCentered);
 	label (db2, "New module name :");
 	
-	string toEnter = "", renamedModule ="";
+	string toEnter = ""
+	renamedModule =""
 	if(isTemplateModule(itemRefTemplate))
 	{
 		renamedModule = getRenamingModule(itemRefTemplate)
@@ -789,6 +792,7 @@ void main()
 	//Date dateAndTime = dateAndTime(today());
 	//print "Running Script - "dateAndTime"\n";
 	runGUI();
+
 }
 
 logStart("DVS - Copy Module from Template")
