@@ -221,51 +221,49 @@ void runUpdate(string url)
 		}
 	}
 	//print "---> Template of \""name(inputModule) "\" is \""templateName"\".\n"
-	Module moduleTplate = read(templateName,false)
 
 	/////////////////////////////////////////////////////////////
 	///////////////////Compute Linkset Pairing///////////////////
 	/////////////////////////////////////////////////////////////
 	scanLinkSetPairingOfFolder(getParentFolder(item(templateName)), item(templateName)); //create two skip list "lnkModName" and lnkModTgt"
-	if(lengthKey == 0){
+	if(lengthKey != 0){
 		//errorDisplayExit("No linkset pairing to perform according to the template.",false);
-		return
-	}
-	string target,expr, prefixTget, targetName, dirTget, nameLnk
-	Regexp EXPR_reg
-	Folder fTarget;
-	Item itemInF;
-	int iKey = 0;
-	for (iKey = 0; iKey < lengthKey ; iKey++)
-	{
-		find(lnkModTgt,iKey,target);
-		find(lnkModName,iKey,nameLnk);
-		expr = "[0-9][0-9]xx_.*_tpl"
-		EXPR_reg = regexp2 (expr)
-		if(!EXPR_reg target){//should not happen...
-			errorDisplayExit("Error target of template.",false)
-		}
-
-		targetName = target[match 0] 
-		prefixTget = targetName[0:1]
-		int offset, length
-		findPlainText(target, targetName, offset, length, true)
-		dirTget = target[0:offset-1]
-		//Now find all target in fTarget that begin with prefixTget without XX
-		int tmpA = 0
-		fTarget = folder(dirTget)
-		for itemInF in fTarget do
+		string target,expr, prefixTget, targetName, dirTget, nameLnk
+		Regexp EXPR_reg
+		Folder fTarget;
+		Item itemInF;
+		int iKey = 0;
+		for (iKey = 0; iKey < lengthKey ; iKey++)
 		{
-			if (type itemInF == "Formal" && !isTemplateMod(itemInF) && (name(itemInF))[0:1] == prefixTget){
-				///////////////////CREATE LINKSET PAIRING///////////////////
-				msg = addLinkModuleDescriptor(currentFolder, fullName(inputModule), fullName(itemInF), false, true, nameLnk, "")
-				/*if(!null msg){
-					print "\nProblem while creating link : \n"name(inputModule)" ->  " nameLnk " -> "fullName(itemInF)"\nERROR: "msg"\n"
+			find(lnkModTgt,iKey,target);
+			find(lnkModName,iKey,nameLnk);
+			expr = "[0-9][0-9]xx_.*_tpl"
+			EXPR_reg = regexp2 (expr)
+			if(!EXPR_reg target){//should not happen...
+				errorDisplayExit("Error target of template.",false)
+			}
+
+			targetName = target[match 0] 
+			prefixTget = targetName[0:1]
+			int offset, length
+			findPlainText(target, targetName, offset, length, true)
+			dirTget = target[0:offset-1]
+			//Now find all target in fTarget that begin with prefixTget without XX
+			int tmpA = 0
+			fTarget = folder(dirTget)
+			for itemInF in fTarget do
+			{
+				if (type itemInF == "Formal" && !isTemplateMod(itemInF) && (name(itemInF))[0:1] == prefixTget){
+					///////////////////CREATE LINKSET PAIRING///////////////////
+					msg = addLinkModuleDescriptor(currentFolder, fullName(inputModule), fullName(itemInF), false, true, nameLnk, "")
+					/*if(!null msg){
+						print "\nProblem while creating link : \n"name(inputModule)" ->  " nameLnk " -> "fullName(itemInF)"\nERROR: "msg"\n"
+					}
+					else
+					{
+						print "\nLinking : "name(inputModule)" ->  " nameLnk " -> "fullName(itemInF)" \n"
+					}*/
 				}
-				else
-				{
-					print "\nLinking : "name(inputModule)" ->  " nameLnk " -> "fullName(itemInF)" \n"
-				}*/
 			}
 		}
 	}
