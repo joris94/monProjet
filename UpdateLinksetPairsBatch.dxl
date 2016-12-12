@@ -256,12 +256,12 @@ void main(string url, string unique_file_name)
        errorDisplayExit("Error, The URL does not link to a module.",false)
     }
     writtingBuf = write(unique_file_name)
-    generateLinksetPairs(m); 
-    ModName_ mod = module(fullName(moduleFromURL))
-    setLinkModuleDescriptorsExclusive(getParentFolder(moduleFromURL),mod,true)
+    generateLinksetPairs(m); //3701_MdRs_Main
+    ModName_ mod = module(fullName(m))
+    setLinkModuleDescriptorsExclusive(getParentFolder(m),mod,true)
+    close(m)
     writtingBuf << "\nDXL_EXECUTION_FINISHED_OK"
     close (writtingBuf)
-    
 }
 
 logStart("DVS - Update Linkset Pairs (from jenkins job)");
