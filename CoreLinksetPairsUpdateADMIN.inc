@@ -5,8 +5,6 @@
 */
 
 //! GLOBALS
-Skip 		lnkModName = create;
-Skip 		lnkModTgt = create;
 int 		lengthKey = 0;
 string		folderOfDVSTemplates = "/Project_Template_DVS_PLUS_CDA_PMT" //should be changed for production database
 
@@ -41,7 +39,7 @@ void errorDisplayExit(string msg, bool showMsg)
 	Scan the folder of the module (global variable: itemIsTheTplate) to find
 	linkset Paring with this module as source
 ******************************************************************************/
-void scanLinkSetPairingOfFolder(Folder f, Item i) 
+void scanLinkSetPairingOfFolder(Folder f, Item i, Skip &lnkModName, Skip &lnkModTgt) 
 {
 	LinkModuleDescriptor lmd
    	int offset, length
@@ -63,7 +61,7 @@ void scanLinkSetPairingOfFolder(Folder f, Item i)
 	   
 		if ((type (itm) == "Project") || (type (itm) == "Folder"))
 		{
-			scanLinkSetPairingOfFolder(folder(itm),i)	   
+			scanLinkSetPairingOfFolder(folder(itm),i, lnkModName, lnkModTgt)	   
 		}
 	}
 }
@@ -225,7 +223,10 @@ void runUpdate(string url)
 	/////////////////////////////////////////////////////////////
 	///////////////////Compute Linkset Pairing///////////////////
 	/////////////////////////////////////////////////////////////
-	scanLinkSetPairingOfFolder(getParentFolder(item(templateName)), item(templateName)); //create two skip list "lnkModName" and lnkModTgt"
+	Skip lnkModTgt = create
+	Skip lnkModName = create
+	lengthKey = 0
+	scanLinkSetPairingOfFolder(getParentFolder(item(templateName)), item(templateName), lnkModName, lnkModTgt); //create two skip list "lnkModName" and lnkModTgt"
 	if(lengthKey != 0){
 		//errorDisplayExit("No linkset pairing to perform according to the template.",false);
 		string target,expr, prefixTget, targetName, dirTget, nameLnk
